@@ -2,7 +2,7 @@ from aiogram import types, Dispatcher
 from create_bot import dp, bot
 import config
 import sqlite3
-from keyboards import user_kb
+from keyboards import user_kb, admin_kb
 
 
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -36,9 +36,9 @@ async def start_cmd(message: types.Message):
                                                            message.from_user.last_name
                                                            ))
         conn.commit()
-        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.", reply_markup=user_kb)
+        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
     else:
-        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.", reply_markup=user_kb)
+        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
         if message.chat.id in config.ADMINS:
             for _ in config.ADMINS:
                 await bot.send_message(_,
@@ -56,7 +56,7 @@ async def help_cmd(message):
     if message.chat.id not in config.ADMINS:
         await bot.send_message(message.chat.id,
                                "Список доступных лекций: /files\n"
-                               "Чтобы получить файл: /getfile"
+                               "Чтобы получить файл: /getfile", reply_markup=user_kb
                                )
     else:
         await bot.send_message(message.chat.id,
@@ -64,7 +64,7 @@ async def help_cmd(message):
                                "Список загруженных файлов /files\n"
                                "Удалить файл по имени /rmfile\n"
                                "Переименовать файл /rename\n"
-                               "Список пользователей /users\n"
+                               "Список пользователей /users\n", reply_markup=admin_kb
                                )
 
 

@@ -3,7 +3,6 @@ from create_bot import dp
 from handlers import user, admin, other
 
 
-
 async def on_startup(_):
     print('Bot Online')
 
