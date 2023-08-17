@@ -28,7 +28,6 @@ cur.execute("""CREATE TABLE IF NOT EXISTS access(
 conn.commit()
 
 
-# @dp.message_handler(commands=['start'])
 async def start_cmd(message: types.Message):
     cur.execute(
         f"SELECT chatid FROM users WHERE chatid = '{message.chat.id}'")  # есть ли такая запись в таблице
@@ -54,8 +53,7 @@ async def start_cmd(message: types.Message):
                 i += 1
 
 
-# @dp.message_handler(commands=['help'])
-async def help_cmd(message):
+async def help_cmd(message: types.Message):
     if message.chat.id not in config.ADMINS:
         await bot.send_message(message.chat.id,
                                "Список доступных лекций: /files\n"
@@ -66,7 +64,7 @@ async def help_cmd(message):
                                "Действия кнопок\n"
                                "Вход в админку __admin__\n"
                                "Список загруженных файлов __files__\n"
-                               "Удалить файл по имени __rmfile__\n"
+                               "Удалить файл по имени __remove__\n"
                                "Переименовать файл __rename__\n"
                                "Список пользователей __users__\n",
                                parse_mode="MarkdownV2",
