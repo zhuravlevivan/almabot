@@ -1,8 +1,11 @@
+import os
+
 from aiogram import types, Dispatcher
-from create_bot import dp, bot
+from create_bot import bot
 import config
 import sqlite3
-from keyboards import user_kb, admin_kb
+from keyboards.user_kb import user_kb
+from keyboards.admin_kb import admin_menu_kb
 
 
 conn = sqlite3.connect('users.db', check_same_thread=False)
@@ -39,16 +42,16 @@ async def start_cmd(message: types.Message):
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
     else:
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
-        if message.chat.id in config.ADMINS:
-            for _ in config.ADMINS:
-                await bot.send_message(_,
+        if message.chat.id not in config.ADMINS:
+            for i in os.getenv('ADMINS'):
+                await bot.send_message(i,
                                        f"Сообщение от пользователя: \n"
                                        f"Логин: @{message.from_user.username} \n"
                                        f"Имя: {message.from_user.first_name} \n"
                                        f"Фамилия: {message.from_user.last_name} \n"
                                        f"id: `{message.chat.id}`", parse_mode="MarkdownV2"
                                        )
-                _ += 1
+                i += 1
 
 
 # @dp.message_handler(commands=['help'])
@@ -60,11 +63,14 @@ async def help_cmd(message):
                                )
     else:
         await bot.send_message(message.chat.id,
-                               "Вход в админку /admin\n"
-                               "Список загруженных файлов /files\n"
-                               "Удалить файл по имени /rmfile\n"
-                               "Переименовать файл /rename\n"
-                               "Список пользователей /users\n", reply_markup=admin_kb
+                               "Действия кнопок\n"
+                               "Вход в админку __admin__\n"
+                               "Список загруженных файлов __files__\n"
+                               "Удалить файл по имени __rmfile__\n"
+                               "Переименовать файл __rename__\n"
+                               "Список пользователей __users__\n",
+                               parse_mode="MarkdownV2",
+                               reply_markup=admin_menu_kb
                                )
 
 
