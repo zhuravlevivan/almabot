@@ -1,9 +1,16 @@
-import uuid
-
 from aiogram import types, Dispatcher
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import State, StatesGroup
+
 from create_bot import bot, os
 import config
 from keyboards.admin_kb import admin_access_kb
+import uuid
+
+
+class RenameFile(StatesGroup):
+    OldName = State()  # Состояние ожидания старого имени файла
+    NewName = State()  # Состояние ожидания нового имени файла
 
 
 async def admin_cmd(message: types.Message):
@@ -12,6 +19,36 @@ async def admin_cmd(message: types.Message):
     else:
         await bot.send_message(message.chat.id, "Вы не админ")
 
+
+# ------------- RENAME CMD START ------------- #
+async def rename_file(message: types.Message):
+    await message.answer("Введите старое имя файла:")
+    await RenameFile.OldName.set()
+
+
+async def process_old_name_step(message: types.Message, state: FSMContext):
+    old_name = message.text
+
+    await message.answer("Введите новое имя файла:")
+    await state.update_data(old_name=old_name)
+    await RenameFile.NewName.set()
+
+
+async def process_new_name_step(message: types.Message, state: FSMContext):
+
+    new_name = message.text
+    data = await state.get_data()
+    old_name = data.get('old_name')
+
+    try:
+        os.rename(os.path.join('files/', f'{old_name}'), os.path.join('files/', f'{new_name}'))
+        await message.answer(f"Файл успешно переименован в {new_name}")
+
+    except Exception as e:
+        await message.answer(f"Ошибка при переименовании файла: {e}")
+
+    await state.finish()
+# ------------- RENAME CMD END ------------- #
 
 # async def remove_cmd(message):
 # async def rename_cmd(message):
@@ -39,6 +76,9 @@ async def admin_cmd(message: types.Message):
 
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_cmd, commands=['admin'])
+    dp.register_message_handler(rename_file, commands=['rename'], state=None)
+    dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
+    dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
     # dp.register_callback_query_handler(query_handler)
 
 

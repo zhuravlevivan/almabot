@@ -7,7 +7,6 @@ import sqlite3
 from keyboards.user_kb import user_kb
 from keyboards.admin_kb import admin_menu_kb
 
-
 conn = sqlite3.connect('users.db', check_same_thread=False)
 cur = conn.cursor()
 cur.execute("""CREATE TABLE IF NOT EXISTS users(
@@ -79,10 +78,7 @@ async def files_cmd(message):
         await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
 
 
-
 def register_handlers_user(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])
     dp.register_message_handler(help_cmd, commands=['help'])
     dp.register_message_handler(files_cmd, commands=['files'])
-
-
