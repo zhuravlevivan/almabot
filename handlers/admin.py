@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from create_bot import bot, os
 import config
+from database import sqlite_db
 from keyboards.admin_kb import admin_access_kb
 import uuid
 
@@ -26,7 +27,7 @@ async def admin_cmd(message: types.Message):
 
 
 # ------------- RENAME CMD START ------------- #
-async def rename_file(message: types.Message):
+async def rename_cmd(message: types.Message):
     await message.answer("Введите старое имя файла:")
     await RenameFile.OldName.set()
 
@@ -72,7 +73,9 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 # async def remove_cmd(message):
 # async def rename_cmd(message):
 # async def getfile_cmd(message):
-# async def users_cmd(message):
+
+async def users_cmd(message):
+    await sqlite_db.show_users(message)
 
 
 # async def voice_processing(message):
@@ -95,11 +98,11 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 # ------------- HANDLER REGISTRATION START ------------- #
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_cmd, commands=['admin'])
-    dp.register_message_handler(rename_file, commands=['rename'], state=None)
+    dp.register_message_handler(rename_cmd, commands=['rename'], state=None)
     dp.register_message_handler(cancel_handler, state='*', commands='cancel')
     dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
-
+    dp.register_message_handler(users_cmd, commands=['users'])
     # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
     # dp.register_callback_query_handler(query_handler)
 

@@ -1,4 +1,6 @@
 import sqlite3 as sq
+import config
+from create_bot import bot
 
 
 def sql_start():
@@ -31,3 +33,10 @@ async def sql_add_users_cmd(message):
                                                        message.from_user.first_name,
                                                        message.from_user.last_name
                                                        ))
+
+
+async def show_users(message):
+    if message.chat.id in config.ADMINS:
+        for value in cur.execute("SELECT * FROM users").fetchall():
+            await bot.send_message(message.chat.id,
+                             f"{value[1]} <code>{value[0]}</code> {value[2]} {value[3]}", parse_mode="html")
