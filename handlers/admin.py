@@ -1,7 +1,7 @@
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-
+from aiogram.dispatcher.filters import Text
 from create_bot import bot, os
 import config
 from keyboards.admin_kb import admin_access_kb
@@ -13,6 +13,8 @@ class RenameFile(StatesGroup):
     NewName = State()  # Состояние ожидания нового имени файла
 
 
+# ------------- ADMIN CMD START ------------- #
+
 async def admin_cmd(message: types.Message):
     if message.chat.id in config.ADMINS:
         await bot.send_message(message.chat.id, "[--------A-C-C-E-S-S---Z-O-N-E--------]", reply_markup=admin_access_kb)
@@ -20,11 +22,26 @@ async def admin_cmd(message: types.Message):
         await bot.send_message(message.chat.id, "Вы не админ")
 
 
+# ------------- ADMIN CMD END ------------- #
+
+
 # ------------- RENAME CMD START ------------- #
 async def rename_file(message: types.Message):
     await message.answer("Введите старое имя файла:")
     await RenameFile.OldName.set()
 
+
+# ------------ STATE CANCEL START ------------ #
+
+async def cancel_handler(message: types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+    await state.finish()
+    await message.reply('ok')
+
+
+# ------------ STATE CANCEL END ------------ #
 
 async def process_old_name_step(message: types.Message, state: FSMContext):
     old_name = message.text
@@ -35,7 +52,6 @@ async def process_old_name_step(message: types.Message, state: FSMContext):
 
 
 async def process_new_name_step(message: types.Message, state: FSMContext):
-
     new_name = message.text
     data = await state.get_data()
     old_name = data.get('old_name')
@@ -48,7 +64,10 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
         await message.answer(f"Ошибка при переименовании файла: {e}")
 
     await state.finish()
+
+
 # ------------- RENAME CMD END ------------- #
+
 
 # async def remove_cmd(message):
 # async def rename_cmd(message):
@@ -73,14 +92,18 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 #     else:
 #         bot.send_message(message.chat.id, "Вам нельзя!")
 
-
+# ------------- HANDLER REGISTRATION START ------------- #
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_cmd, commands=['admin'])
     dp.register_message_handler(rename_file, commands=['rename'], state=None)
+    dp.register_message_handler(cancel_handler, state='*', commands='cancel')
     dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
+
+    # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
     # dp.register_callback_query_handler(query_handler)
 
+# ------------- HANDLER REGISTRATION END ------------- #
 
 # ------------- INLINE KB QUERY START ------------- #
 # async def query_handler(callback: types.CallbackQuery):

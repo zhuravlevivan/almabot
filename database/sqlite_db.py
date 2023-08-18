@@ -23,3 +23,11 @@ def sql_start():
                     alectionid  INTEGER
                 )""")
     base.commit()
+
+
+async def sql_add_users_cmd(message):
+    cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
+                                                       message.from_user.username,
+                                                       message.from_user.first_name,
+                                                       message.from_user.last_name
+                                                       ))

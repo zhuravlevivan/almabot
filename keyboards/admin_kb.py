@@ -14,22 +14,28 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 # admin_menu_kb.row(mkb4, mkb5, mkb6)
 # ------------ INLINE KB END ------------ #
 
+# ------------ MENU KB START ------------ #
 arb1 = KeyboardButton('/admin')
 arb2 = KeyboardButton('/files')
 arb3 = KeyboardButton('/remove')
 arb4 = KeyboardButton('/rename')
 arb5 = KeyboardButton('/users')
 arb6 = KeyboardButton('/getfile')
+arb7 = KeyboardButton('/cancel')
 
 admin_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 admin_menu_kb.row(arb1, arb2, arb3)
 admin_menu_kb.row(arb4, arb5, arb6)
+admin_menu_kb.row(arb7)
 
+# ------------ MENU KB END ------------ #
 
-
+# ------------ ACCESS KB START ------------ #
 admin_access_kb = InlineKeyboardMarkup(row_width=1)
 
 akb1 = KeyboardButton("Выдать доступ пользователю", callback_data='gaccept')
 akb2 = KeyboardButton("Забрать доступ у пользователя", callback_data='daccept')
 akb3 = KeyboardButton("Рассылка", callback_data='rass')
 admin_access_kb.add(akb3, akb1, akb2)
+
+# ------------ ACCESS KB END ------------ #
