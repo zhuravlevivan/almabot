@@ -41,15 +41,16 @@ async def start_cmd(message: types.Message):
     else:
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
         if message.chat.id not in config.ADMINS:
-            for i in os.getenv('ADMINS'):
-                await bot.send_message(i,
+            for ids in config.ADMINS:
+                # print(i)
+                await bot.send_message(ids,
                                        f"Сообщение от пользователя: \n"
                                        f"Логин: @{message.from_user.username} \n"
                                        f"Имя: {message.from_user.first_name} \n"
                                        f"Фамилия: {message.from_user.last_name} \n"
                                        f"id: `{message.chat.id}`", parse_mode="MarkdownV2"
                                        )
-                i += 1
+                ids += 1
 
 
 async def help_cmd(message: types.Message):

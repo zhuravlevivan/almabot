@@ -21,14 +21,22 @@ arb3 = KeyboardButton('/remove')
 arb4 = KeyboardButton('/rename')
 arb5 = KeyboardButton('/users')
 arb6 = KeyboardButton('/getfile')
-arb7 = KeyboardButton('/cancel')
+
 
 admin_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 admin_menu_kb.row(arb1, arb2, arb3)
 admin_menu_kb.row(arb4, arb5, arb6)
-admin_menu_kb.row(arb7)
+
 
 # ------------ MENU KB END ------------ #
+
+# ------------ CANCEL KB START ------------ #
+cmkb1 = KeyboardButton('/cancel')
+
+cancel_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+cancel_menu_kb.row(cmkb1)
+# ------------ CANCEL KB END ------------ #
+
 
 # ------------ ACCESS KB START ------------ #
 admin_access_kb = InlineKeyboardMarkup(row_width=1)

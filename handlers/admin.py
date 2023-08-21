@@ -5,8 +5,8 @@ from aiogram.dispatcher.filters import Text
 from create_bot import bot, os
 import config
 from database import sqlite_db
-from keyboards.admin_kb import admin_access_kb
-import uuid
+from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
+from datetime import datetime
 
 
 class RenameFile(StatesGroup):
@@ -28,8 +28,9 @@ async def admin_cmd(message: types.Message):
 
 # ------------- RENAME CMD START ------------- #
 async def rename_cmd(message: types.Message):
-    await message.answer("Введите старое имя файла:")
-    await RenameFile.OldName.set()
+    if message.chat.id in config.ADMINS:
+        await message.answer("Введите старое имя файла:", reply_markup=cancel_menu_kb)
+        await RenameFile.OldName.set()
 
 
 # ------------ STATE CANCEL START ------------ #
@@ -39,10 +40,10 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     if current_state is None:
         return
     await state.finish()
-    await message.reply('ok')
-
+    await message.reply('ok', reply_markup=admin_menu_kb)
 
 # ------------ STATE CANCEL END ------------ #
+
 
 async def process_old_name_step(message: types.Message, state: FSMContext):
     old_name = message.text
@@ -78,24 +79,24 @@ async def users_cmd(message):
     await sqlite_db.show_users(message)
 
 
-# async def voice_processing(message):
-#     if message.chat.id in config.ADMINS:
-#         try:
-#             file_name = str(uuid.uuid4())[:8]
-#             file_info = bot.get_file(message.voice.file_id)
-#             downloaded_file = bot.download_file(file_info.file_path)
-#             with open(os.path.join('files/', f'{file_name}.ogg'), 'wb') as new_file:
-#                 new_file.write(downloaded_file)
-#
-#             cur.execute(f"INSERT INTO lections(path) VALUES (?)", [f'{file_name}.ogg'])
-#             conn.commit()
-#             bot.reply_to(message, f"Сохранено с именем {file_name}.ogg!")
-#         except Exception as e:
-#             bot.reply_to(message, e)
-#     else:
-#         bot.send_message(message.chat.id, "Вам нельзя!")
+# ------------- PROCESSING VOICE START ------------- #
+async def voice_processing(message: types.Message):
+    if message.chat.id in config.ADMINS:
+        try:
+            file_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".ogg"
 
-# ------------- HANDLER REGISTRATION START ------------- #
+            await message.voice.download(destination_file=f"files/{file_name}")
+            sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [f'{file_name}'])
+            sqlite_db.base.commit()
+            await message.reply(f"Сохранено с именем {file_name}")
+        except Exception as e:
+            await message.reply(str(e))
+    else:
+        await message.reply("Вам нельзя!")
+# ------------- PROCESSING VOICE END ------------- #
+
+
+# ------------- HANDLER REGISTRATIONS START ------------- #
 def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(admin_cmd, commands=['admin'])
     dp.register_message_handler(rename_cmd, commands=['rename'], state=None)
@@ -103,10 +104,11 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
     dp.register_message_handler(users_cmd, commands=['users'])
+    dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
     # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
     # dp.register_callback_query_handler(query_handler)
 
-# ------------- HANDLER REGISTRATION END ------------- #
+# ------------- HANDLER REGISTRATIONS END ------------- #
 
 # ------------- INLINE KB QUERY START ------------- #
 # async def query_handler(callback: types.CallbackQuery):

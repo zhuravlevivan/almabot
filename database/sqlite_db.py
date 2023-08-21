@@ -2,6 +2,9 @@ import sqlite3 as sq
 import config
 from create_bot import bot
 
+base = None
+cur = None
+
 
 def sql_start():
     global base, cur
