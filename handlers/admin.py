@@ -22,10 +22,11 @@ class RemoveFile(StatesGroup):
 class GetFileAccess(StatesGroup):
     FileAccessName = State()  # Состояние ожидания имени файла
 
+
 # ------------- STATE CLASSES END ------------- #
 
-# ------------- ADMIN CMD START ------------- #
 
+# ------------- ADMIN CMD START ------------- #
 
 async def admin_cmd(message: types.Message):
     if message.chat.id in config.ADMINS:
@@ -85,7 +86,6 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 # ------------- RENAME CMD END ------------- #
 
 
-# async def remove_cmd(message):
 # ------------- REMOVE CMD START ------------- #
 async def remove_cmd(message: types.Message):
     if message.chat.id in config.ADMINS:
@@ -102,8 +102,8 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
         sqlite_db.base.commit()
         await message.answer("Файл удален", reply_markup=admin_menu_kb)
 
-    except Exception:
-        await message.answer("Ошибка при удалении файла: {e}", reply_markup=admin_menu_kb)
+    except OSError as e:
+        await message.answer(f"Ошибка при удалении файла: {e.strerror}", reply_markup=admin_menu_kb)
 
     await state.finish()
 
@@ -111,10 +111,43 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
 # ------------- REMOVE CMD END ------------- #
 
 
-# async def getfile_cmd(message):
+# ------------- GETFILE CMD START ------------- #
+async def getfile_cmd(message: types.Message):
+    sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
+    result = sqlite_db.cur.fetchall()
+    if len(result) > 0:
+        try:
+            if message.chat.id not in (result[0]):
+                bot.send_message(message.chat.id, "Нет доступа...")
+            else:
+                await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
+                await GetFileAccess.FileAccessName.set()
+        except Exception as e:
+            await message.answer(str(e))
+    else:
+        await message.answer("Некому выдавать доступ")
 
-async def users_cmd(message):
+
+# ------------- GETFILE CMD END ------------- #
+
+async def process_get_file_access_step(message: types.Message, state: FSMContext):
+    files = os.listdir('files/')
+    if message.text in files:
+        try:
+            # sqlite_db.cur.execute(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
+            print(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
+        except Exception as e:
+            await message.answer(str(e))
+
+    await state.finish()
+
+
+# ------------- USERS CMD START ------------- #
+async def users_cmd(message: types.Message):
     await sqlite_db.show_users(message)
+
+
+# ------------- USERS CMD END ------------- #
 
 
 # ------------- PROCESSING VOICE START ------------- #
@@ -147,6 +180,8 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
     dp.register_message_handler(remove_cmd, commands=['remove'], state=None)
     dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
+    dp.register_message_handler(getfile_cmd, commands=['getfile'])
+    dp.register_message_handler(process_get_file_access_step, state=GetFileAccess.FileAccessName)
     # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
     # dp.register_callback_query_handler(query_handler)
 

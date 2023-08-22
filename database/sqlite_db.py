@@ -1,5 +1,6 @@
 import sqlite3 as sq
 import config
+import os
 from create_bot import bot
 
 base = None
@@ -43,3 +44,21 @@ async def show_users(message):
         for value in cur.execute("SELECT * FROM users").fetchall():
             await bot.send_message(message.chat.id,
                                    f"{value[1]} <code>{value[0]}</code> {value[2]} {value[3]}", parse_mode="html")
+
+
+async def show_files(message):
+    if message.chat.id in config.ADMINS:
+        for value in cur.execute("SELECT * FROM lections").fetchall():
+            if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
+                await bot.send_message(message.chat.id,
+                                       f"ID=<code>{value[0]}</code> NAME=<code>{value[1]}</code>", parse_mode="html")
+            else:
+                await bot.send_message(message.chat.id, "Файлов нет")
+    else:
+        files = os.listdir('files/')
+        if len(files) > 0:
+            await bot.send_message(message.chat.id, 'Список файлов')
+            for file in files:
+                await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
+        else:
+            await bot.send_message(message.chat.id, 'Файлов нет')

@@ -34,7 +34,6 @@ async def start_cmd(message: types.Message):
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
 
 
-
 async def help_cmd(message: types.Message):
     if message.chat.id not in config.ADMINS:
         await bot.send_message(message.chat.id,
@@ -55,13 +54,7 @@ async def help_cmd(message: types.Message):
 
 
 async def files_cmd(message):
-    files = os.listdir('files/')
-    if len(files) > 0:
-        await bot.send_message(message.chat.id, 'Список файлов')
-        for file in files:
-            await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
-    else:
-        await bot.send_message(message.chat.id, 'Файлов нет')
+    await sqlite_db.show_files(message)
 
 
 def register_handlers_user(dp: Dispatcher):
