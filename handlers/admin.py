@@ -19,8 +19,13 @@ class RemoveFile(StatesGroup):
     FileRemoveName = State()  # Состояние ожидания имени файла
 
 
-class GetFileAccess(StatesGroup):
-    FileAccessName = State()  # Состояние ожидания имени файла
+class GetFile(StatesGroup):
+    FileName = State()  # Состояние ожидания имени файла
+
+
+class AccessToFilesStates(StatesGroup):
+    waiting_for_user_id = State()
+    waiting_for_file_name = State()
 
 
 # ------------- STATE CLASSES END ------------- #
@@ -112,34 +117,35 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
 
 
 # ------------- GETFILE CMD START ------------- #
-async def getfile_cmd(message: types.Message):
-    sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
-    result = sqlite_db.cur.fetchall()
-    if len(result) > 0:
-        try:
-            if message.chat.id not in (result[0]):
-                bot.send_message(message.chat.id, "Нет доступа...")
-            else:
-                await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
-                await GetFileAccess.FileAccessName.set()
-        except Exception as e:
-            await message.answer(str(e))
-    else:
-        await message.answer("Некому выдавать доступ")
+# async def getfile_cmd(message: types.Message):
+#     sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
+#     result = sqlite_db.cur.fetchall()
+#     if len(result) > 0:
+#         try:
+#             if message.chat.id not in (result[0]):
+#                 bot.send_message(message.chat.id, "Нет доступа...")
+#             else:
+#                 await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
+#                 await GetFile.FileName.set()
+#         except Exception as e:
+#             await message.answer(str(e))
+#     else:
+#         await message.answer("Некому выдавать доступ")
+#
+#
+# async def process_get_file_access_step(message: types.Message, state: FSMContext):
+#     files = os.listdir('files/')
+#     if message.text in files:
+#         try:
+#             # sqlite_db.cur.execute(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
+#             print(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
+#         except Exception as e:
+#             await message.answer(str(e))
+#
+#     await state.finish()
 
-
+#  *******************************************************************
 # ------------- GETFILE CMD END ------------- #
-
-async def process_get_file_access_step(message: types.Message, state: FSMContext):
-    files = os.listdir('files/')
-    if message.text in files:
-        try:
-            # sqlite_db.cur.execute(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
-            print(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
-        except Exception as e:
-            await message.answer(str(e))
-
-    await state.finish()
 
 
 # ------------- USERS CMD START ------------- #
@@ -148,6 +154,55 @@ async def users_cmd(message: types.Message):
 
 
 # ------------- USERS CMD END ------------- #
+
+
+# ------------- GIVING ACCESS START ------------- #
+async def giving_access(message: types.Message):
+    await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
+    await AccessToFilesStates.waiting_for_user_id.set()
+
+
+async def process_user_id(message: types.Message, state: FSMContext):
+    user_id = message.text
+    # Сохранение ID пользователя в контексте FSM
+    if user_id.isdigit():
+        await state.update_data(user_id=user_id)
+        await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
+        await AccessToFilesStates.waiting_for_file_name.set()
+    else:
+        await message.reply("Это не ID", reply_markup=admin_menu_kb)
+        await state.finish()
+
+
+async def process_file_name(message: types.Message, state: FSMContext):
+    lecture = message.text
+    data = await state.get_data()
+    user_id = data.get("user_id")
+    # Проверка наличия файла в базе данных по имени
+    if lecture in config.FILES:
+        sqlite_db.cur.execute(
+            f"SELECT * FROM access WHERE auserid = '{user_id}'"
+            f"AND alectionid = '{lecture}'"
+        )
+        if sqlite_db.cur.fetchone() is None:
+            sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
+                                  (f'{user_id}',
+                                   f'{lecture}')
+                                  )
+            sqlite_db.base.commit()
+            await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
+                                             
+                                                    f"к файлу {lecture}", reply_markup=admin_menu_kb)
+        else:
+            await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
+    else:
+        await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
+
+    # Сброс состояния FSM
+    await state.finish()
+
+
+# ------------- GIVING ACCESS END ------------- #
 
 
 # ------------- PROCESSING VOICE START ------------- #
@@ -180,11 +235,12 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
     dp.register_message_handler(remove_cmd, commands=['remove'], state=None)
     dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
-    dp.register_message_handler(getfile_cmd, commands=['getfile'])
-    dp.register_message_handler(process_get_file_access_step, state=GetFileAccess.FileAccessName)
+    # dp.register_message_handler(getfile_cmd, commands=['getfile'])
+    # dp.register_message_handler(process_get_file_access_step, state=GetFile.FileName)
     # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
-    # dp.register_callback_query_handler(query_handler)
-
+    dp.register_message_handler(giving_access, Text(equals='gaccept', ignore_case=True))
+    dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)
+    dp.register_message_handler(process_file_name, state=AccessToFilesStates.waiting_for_file_name)
 # ------------- HANDLER REGISTRATIONS END ------------- #
 
 # ------------- INLINE KB QUERY START ------------- #
