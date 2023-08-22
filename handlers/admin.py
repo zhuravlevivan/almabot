@@ -9,12 +9,23 @@ from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
 from datetime import datetime
 
 
+# ------------- STATE CLASSES START ------------- #
 class RenameFile(StatesGroup):
     OldName = State()  # Состояние ожидания старого имени файла
     NewName = State()  # Состояние ожидания нового имени файла
 
 
+class RemoveFile(StatesGroup):
+    FileRemoveName = State()  # Состояние ожидания имени файла
+
+
+class GetFileAccess(StatesGroup):
+    FileAccessName = State()  # Состояние ожидания имени файла
+
+# ------------- STATE CLASSES END ------------- #
+
 # ------------- ADMIN CMD START ------------- #
+
 
 async def admin_cmd(message: types.Message):
     if message.chat.id in config.ADMINS:
@@ -42,6 +53,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     await state.finish()
     await message.reply('ok', reply_markup=admin_menu_kb)
 
+
 # ------------ STATE CANCEL END ------------ #
 
 
@@ -59,11 +71,13 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
     old_name = data.get('old_name')
 
     try:
+        sqlite_db.cur.execute(f"UPDATE lections SET path = '{new_name}' WHERE path = '{old_name}'")
+        sqlite_db.base.commit()
         os.rename(os.path.join('files/', f'{old_name}'), os.path.join('files/', f'{new_name}'))
-        await message.answer(f"Файл успешно переименован в {new_name}")
+        await message.answer(f"Файл успешно переименован в {new_name}", reply_markup=admin_menu_kb)
 
     except Exception as e:
-        await message.answer(f"Ошибка при переименовании файла: {e}")
+        await message.answer(f"Ошибка при переименовании файла: {e}", reply_markup=admin_menu_kb)
 
     await state.finish()
 
@@ -72,7 +86,31 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 
 
 # async def remove_cmd(message):
-# async def rename_cmd(message):
+# ------------- REMOVE CMD START ------------- #
+async def remove_cmd(message: types.Message):
+    if message.chat.id in config.ADMINS:
+        await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
+        await RemoveFile.FileRemoveName.set()
+
+
+async def process_file_remove_step(message: types.Message, state: FSMContext):
+    # noinspection PyBroadException
+    try:
+        os.remove(f'files/{message.text}')
+        sqlite_db.cur.execute(f'DELETE FROM lections WHERE path = "{message.text}"')
+        sqlite_db.cur.execute(f'DELETE FROM access WHERE alectionid = "{message.text}"')
+        sqlite_db.base.commit()
+        await message.answer("Файл удален", reply_markup=admin_menu_kb)
+
+    except Exception:
+        await message.answer("Ошибка при удалении файла: {e}", reply_markup=admin_menu_kb)
+
+    await state.finish()
+
+
+# ------------- REMOVE CMD END ------------- #
+
+
 # async def getfile_cmd(message):
 
 async def users_cmd(message):
@@ -93,6 +131,8 @@ async def voice_processing(message: types.Message):
             await message.reply(str(e))
     else:
         await message.reply("Вам нельзя!")
+
+
 # ------------- PROCESSING VOICE END ------------- #
 
 
@@ -105,6 +145,8 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
     dp.register_message_handler(users_cmd, commands=['users'])
     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
+    dp.register_message_handler(remove_cmd, commands=['remove'], state=None)
+    dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
     # dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
     # dp.register_callback_query_handler(query_handler)
 

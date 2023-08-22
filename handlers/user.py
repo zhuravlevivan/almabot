@@ -1,44 +1,23 @@
 import os
+import config
 
 from aiogram import types, Dispatcher
 from create_bot import bot
-import config
-import sqlite3
+from database import sqlite_db
 from keyboards.user_kb import user_kb
 from keyboards.admin_kb import admin_menu_kb
 
-conn = sqlite3.connect('users.db', check_same_thread=False)
-cur = conn.cursor()
-cur.execute("""CREATE TABLE IF NOT EXISTS users(
-               chatid varchar(255),
-               login varchar(255),
-               name varchar(255),
-               lname varchar(255)
-            )""")
-cur.execute("""CREATE TABLE IF NOT EXISTS lections(
-                lectionid INTEGER,
-                path TEXT,
-                PRIMARY KEY("lectionid")
-            )""")
-cur.execute("""CREATE TABLE IF NOT EXISTS access(
-                auserid INTEGER,
-                alectionid  INTEGER
-            )""")
-conn.commit()
-
 
 async def start_cmd(message: types.Message):
-    cur.execute(
+    sqlite_db.cur.execute(
         f"SELECT chatid FROM users WHERE chatid = '{message.chat.id}'")  # есть ли такая запись в таблице
-    if cur.fetchone() is None:  # если такой записи нет, то:
-        cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
-                                                           message.from_user.username,
-                                                           message.from_user.first_name,
-                                                           message.from_user.last_name
-                                                           ))
-        conn.commit()
-        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
-    else:
+    if sqlite_db.cur.fetchone() is None:  # если такой записи нет, то:
+        sqlite_db.cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
+                                                                     message.from_user.username,
+                                                                     message.from_user.first_name,
+                                                                     message.from_user.last_name
+                                                                     ))
+        sqlite_db.base.commit()
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
         if message.chat.id not in config.ADMINS:
             for ids in config.ADMINS:
@@ -51,6 +30,9 @@ async def start_cmd(message: types.Message):
                                        f"id: `{message.chat.id}`", parse_mode="MarkdownV2"
                                        )
                 ids += 1
+    else:
+        await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
+
 
 
 async def help_cmd(message: types.Message):
@@ -74,9 +56,12 @@ async def help_cmd(message: types.Message):
 
 async def files_cmd(message):
     files = os.listdir('files/')
-    await bot.send_message(message.chat.id, 'Список файлов')
-    for file in files:
-        await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
+    if len(files) > 0:
+        await bot.send_message(message.chat.id, 'Список файлов')
+        for file in files:
+            await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
+    else:
+        await bot.send_message(message.chat.id, 'Файлов нет')
 
 
 def register_handlers_user(dp: Dispatcher):
