@@ -9,7 +9,7 @@ from database import sqlite_db
 async def on_startup(_):
     print('Bot Online')
     sqlite_db.sql_start()
-    # print(os.getenv('ADMINS'))
+
 
 user.register_handlers_user(dp)
 admin.register_handlers_admin(dp)

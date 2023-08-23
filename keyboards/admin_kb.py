@@ -15,12 +15,12 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 # ------------ INLINE KB END ------------ #
 
 # ------------ MENU KB START ------------ #
-arb1 = KeyboardButton('/admin')
-arb2 = KeyboardButton('/files')
-arb3 = KeyboardButton('/remove')
-arb4 = KeyboardButton('/rename')
-arb5 = KeyboardButton('/users')
-arb6 = KeyboardButton('/getfile')
+arb1 = KeyboardButton('admin')
+arb2 = KeyboardButton('files')
+arb3 = KeyboardButton('remove')
+arb4 = KeyboardButton('rename')
+arb5 = KeyboardButton('users')
+arb6 = KeyboardButton('getfile')
 
 
 admin_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
@@ -37,13 +37,23 @@ cancel_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=Tru
 cancel_menu_kb.row(cmkb1)
 # ------------ CANCEL KB END ------------ #
 
+# ------------ ACCESS REPLY KB START ------------ #
+admin_access_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
-# ------------ ACCESS KB START ------------ #
-admin_access_kb = InlineKeyboardMarkup(row_width=1)
+akb1 = KeyboardButton('give_accept')
+akb2 = KeyboardButton('delete_accept')
+akb3 = KeyboardButton('mailing')
+akb4 = KeyboardButton('go_back')
+admin_access_kb.add(akb3, akb1, akb2, akb4)
+# ------------ ACCESS REPLY KB END ------------ #
 
-akb1 = KeyboardButton("Выдать доступ пользователю", callback_data='gaccept')
-akb2 = KeyboardButton("Забрать доступ у пользователя", callback_data='daccept')
-akb3 = KeyboardButton("Рассылка", callback_data='rass')
-admin_access_kb.add(akb3, akb1, akb2)
 
-# ------------ ACCESS KB END ------------ #
+
+# ------------ ACCESS INLINE KB START ------------ #
+# admin_access_kb = InlineKeyboardMarkup(row_width=1)
+#
+# akb1 = KeyboardButton("Выдать доступ пользователю", callback_data='gaccept')
+# akb2 = KeyboardButton("Забрать доступ у пользователя", callback_data='daccept')
+# akb3 = KeyboardButton("Рассылка", callback_data='rass')
+# admin_access_kb.add(akb3, akb1, akb2)
+# ------------ ACCESS INLINE KB END ------------ #
