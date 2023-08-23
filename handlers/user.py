@@ -2,6 +2,7 @@ import os
 import config
 
 from aiogram import types, Dispatcher
+from aiogram.dispatcher.filters import Text
 from create_bot import bot
 from database import sqlite_db
 from keyboards.user_kb import user_kb
@@ -61,3 +62,4 @@ def register_handlers_user(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])
     dp.register_message_handler(help_cmd, commands=['help'])
     dp.register_message_handler(files_cmd, commands=['files'])
+    dp.register_message_handler(files_cmd, Text(equals='files'))

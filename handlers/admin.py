@@ -4,6 +4,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.filters import Text
 from create_bot import bot, os
 import config
+from handlers import other
 from database import sqlite_db
 from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
 from datetime import datetime
@@ -130,38 +131,6 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
 # ------------- REMOVE CMD END ------------- #
 
 
-# ------------- GETFILE CMD START ------------- #
-# async def getfile_cmd(message: types.Message):
-#     sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
-#     result = sqlite_db.cur.fetchall()
-#     if len(result) > 0:
-#         try:
-#             if message.chat.id not in (result[0]):
-#                 bot.send_message(message.chat.id, "Нет доступа...")
-#             else:
-#                 await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
-#                 await GetFile.FileName.set()
-#         except Exception as e:
-#             await message.answer(str(e))
-#     else:
-#         await message.answer("Некому выдавать доступ")
-#
-#
-# async def process_get_file_access_step(message: types.Message, state: FSMContext):
-#     files = os.listdir('files/')
-#     if message.text in files:
-#         try:
-#             # sqlite_db.cur.execute(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
-#             print(f"SELECT * FROM access WHERE auserid = '{message.from_user.id}' AND alectionid = '{message.text}'")
-#         except Exception as e:
-#             await message.answer(str(e))
-#
-#     await state.finish()
-
-#  *******************************************************************
-# ------------- GETFILE CMD END ------------- #
-
-
 # ------------- USERS CMD START ------------- #
 async def users_cmd(message: types.Message):
     if is_admin(message):
@@ -169,6 +138,40 @@ async def users_cmd(message: types.Message):
 
 
 # ------------- USERS CMD END ------------- #
+
+# ------------- GETFILE START ------------- #
+async def get_file(message: types.Message):
+    if is_admin(message):
+        sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
+        result = sqlite_db.cur.fetchall()
+        # print(message.chat.id in result[0])
+        try:
+            if message.chat.id not in result[0]:
+                await message.answer("Нет доступа...")
+            else:
+                await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
+                await GetFile.FileName.set()
+        except Exception as e:
+            await message.answer(str(e), reply_markup=admin_menu_kb)
+
+
+async def process_get_file(message: types.Message, state: FSMContext):
+    # noinspection PyBroadException
+    user_id = message.chat.id
+    file_name = message.text
+    print(file_name, file_name in config.FILES)
+    if file_name in config.FILES:
+        sqlite_db.cur.execute(
+            f"SELECT * FROM access WHERE auserid = {user_id} AND alectionid = '{file_name}'")
+        if sqlite_db.cur.fetchall() is None:
+            await message.answer('Доступ еще не предоставлен')
+        else:
+            await other.sending_file(file_name, user_id)
+
+    await state.finish()
+
+
+# ------------- GETFILE END ------------- #
 
 
 # ------------- GIVING ACCESS START ------------- #
@@ -289,9 +292,11 @@ async def process_text_mailing(message: types.Message, state: FSMContext):
             await bot.send_message(mailing_baza[user][0], txt)
         except Exception as e:
             await message.answer(str(e))
-    await message.answer('Рассылка завершена')
+    await message.answer('Рассылка завершена', reply_markup=admin_menu_kb)
 
     await state.finish()
+
+
 # ------------- MAILING END ------------- #
 
 
@@ -339,6 +344,10 @@ def register_handlers_admin(dp: Dispatcher):
 
     dp.register_message_handler(mailing, Text(equals='mailing'))
     dp.register_message_handler(process_text_mailing, state=MailingState.waiting_text_mailing)
+
+    dp.register_message_handler(get_file, Text(equals='getfile', ignore_case=True))
+    # dp.register_message_handler(get_file_cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
+    dp.register_message_handler(process_get_file, state=GetFile.FileName)
 # ------------- HANDLER REGISTRATIONS END ------------- #
 
 # ------------- INLINE KB QUERY START ------------- #

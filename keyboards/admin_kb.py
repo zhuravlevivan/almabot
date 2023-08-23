@@ -31,7 +31,7 @@ admin_menu_kb.row(arb4, arb5, arb6)
 # ------------ MENU KB END ------------ #
 
 # ------------ CANCEL KB START ------------ #
-cmkb1 = KeyboardButton('/cancel')
+cmkb1 = KeyboardButton('cancel')
 
 cancel_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 cancel_menu_kb.row(cmkb1)
