@@ -1,8 +1,7 @@
-from aiogram import types, Dispatcher
+from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher.filters import Text
-from create_bot import bot, os
+from create_bot import os, bot
 import config
 from database import sqlite_db
 from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
@@ -72,7 +71,10 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     if current_state is None:
         return
     await state.finish()
-    await message.reply('ok', reply_markup=admin_menu_kb)
+    if is_admin(message):
+        await message.reply('ok', reply_markup=admin_menu_kb)
+    else:
+        await message.reply('ok', reply_markup=user_kb)
 
 
 # ---- STATE CANCEL END ------------ #
@@ -140,30 +142,10 @@ async def users_cmd(message: types.Message):
 # ------------- USERS CMD END ------------- #
 
 
-# async def sending_file(first, second):
-#     doc = open(f'files/{first}', 'rb')
-#     try:
-#         if second in config.ADMINS:
-#             await bot.send_audio(second, doc,
-#                                  protect_content=True,
-#                                  caption="{SOME TEXT}",
-#                                  reply_markup=admin_menu_kb)
-#         else:
-#             await bot.send_audio(second, doc,
-#                                  protect_content=True,
-#                                  caption="{SOME TEXT}",
-#                                  reply_markup=user_kb)
-#     except Exception as e:
-#         await bot.send_message(second, str(e))
-#
-#     doc.close()
-
-
 # ------------- GETFILE START ------------- #
 async def get_file(message: types.Message):
     sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
     result = sqlite_db.cur.fetchall()
-    # print(message.chat.id in result[0])
     try:
         if message.chat.id not in result[0]:
             await message.answer("Нет доступа...")
@@ -178,7 +160,6 @@ async def process_get_file(message: types.Message, state: FSMContext):
     # noinspection PyBroadException
     user_id = message.chat.id
     file_name = message.text
-    # print(file_name, file_name in config.FILES)
     if file_name in config.FILES:
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = {user_id} AND alectionid = '{file_name}'")
@@ -188,8 +169,8 @@ async def process_get_file(message: types.Message, state: FSMContext):
             doc = open(f'files/{file_name}', 'rb')
             try:
                 await bot.send_audio(user_id, doc,
-                                         protect_content=True,
-                                         caption="{SOME TEXT}")
+                                     protect_content=True,
+                                     caption="{SOME TEXT}")
 
             except Exception as e:
                 await bot.send_message(user_id, str(e))
@@ -229,7 +210,6 @@ async def process_file_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_id = data.get("user_id")
     # Проверка наличия файла в базе данных по имени
-
     if lecture in config.FILES:
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = '{user_id}'"
@@ -281,7 +261,6 @@ async def process_delete_file_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_id = data.get("user_id")
     # Проверка наличия файла в базе данных по имени
-    # print(lecture, user_id)
     if lecture in config.FILES:
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = '{user_id}'"
@@ -345,6 +324,7 @@ async def voice_processing(message: types.Message):
     else:
         await message.reply("Вам нельзя!")
 
+
 # ------------- PROCESSING VOICE END ------------- #
 
 
@@ -380,41 +360,42 @@ async def handle_audio_or_document(message: types.Message):
     else:
         await message.answer('Вам нельзя!')
 
+
 # ------------- PROCESSING SAVE AUDIO END ------------- #
 
 # ------------- HANDLER REGISTRATIONS START ------------- #
-def register_handlers_admin(dp: Dispatcher):
-    dp.register_message_handler(admin_cmd, Text(equals='admin', ignore_case=True))
-
-    dp.register_message_handler(rename_cmd, Text(equals='rename', ignore_case=True), state=None)
-    dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
-    dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
-    dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
-
-    dp.register_message_handler(users_cmd, Text(equals='users', ignore_case=True))
-
-    dp.register_message_handler(remove_cmd, Text(equals='remove', ignore_case=True), state=None)
-    dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
-
-    dp.register_message_handler(giving_access, Text(equals='give_accept', ignore_case=True))
-    dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)
-    dp.register_message_handler(process_file_name, state=AccessToFilesStates.waiting_for_file_name)
-
-    dp.register_message_handler(delete_access, Text(equals='del_accept', ignore_case=True))
-    dp.register_message_handler(process_delete_user_id, state=AccessToFilesStates.waiting_for_delete_user_id)
-    dp.register_message_handler(process_delete_file_name, state=AccessToFilesStates.waiting_for_delete_file_name)
-
-    dp.register_message_handler(go_back, Text(equals='go_back', ignore_case=True))
-
-    dp.register_message_handler(mailing, Text(equals='mailing', ignore_case=True))
-    dp.register_message_handler(process_text_mailing, state=MailingState.waiting_text_mailing)
-
-    dp.register_message_handler(get_file, Text(equals='getfile', ignore_case=True))
-    dp.register_message_handler(process_get_file, state=GetFile.FileName)
-
-    dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
-    dp.register_message_handler(handle_audio_or_document, content_types=[types.ContentType.AUDIO,
-                                                                         types.ContentType.DOCUMENT])
+# def register_handlers_admin(dp: Dispatcher):
+#     dp.register_message_handler(admin_cmd, Text(equals='admin', ignore_case=True))
+#
+#     dp.register_message_handler(rename_cmd, Text(equals='rename', ignore_case=True), state=None)
+#     dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
+#     dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
+#     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
+#
+#     dp.register_message_handler(users_cmd, Text(equals='users', ignore_case=True))
+#
+#     dp.register_message_handler(remove_cmd, Text(equals='remove', ignore_case=True), state=None)
+#     dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
+#
+#     dp.register_message_handler(giving_access, Text(equals='give_accept', ignore_case=True))
+#     dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)
+#     dp.register_message_handler(process_file_name, state=AccessToFilesStates.waiting_for_file_name)
+#
+#     dp.register_message_handler(delete_access, Text(equals='del_accept', ignore_case=True))
+#     dp.register_message_handler(process_delete_user_id, state=AccessToFilesStates.waiting_for_delete_user_id)
+#     dp.register_message_handler(process_delete_file_name, state=AccessToFilesStates.waiting_for_delete_file_name)
+#
+#     dp.register_message_handler(go_back, Text(equals='go_back', ignore_case=True))
+#
+#     dp.register_message_handler(mailing, Text(equals='mailing', ignore_case=True))
+#     dp.register_message_handler(process_text_mailing, state=MailingState.waiting_text_mailing)
+#
+#     dp.register_message_handler(get_file, Text(equals='getfile', ignore_case=True))
+#     dp.register_message_handler(process_get_file, state=GetFile.FileName)
+#
+#     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
+#     dp.register_message_handler(handle_audio_or_document, content_types=[types.ContentType.AUDIO,
+#                                                                          types.ContentType.DOCUMENT])
 
 # ------------- HANDLER REGISTRATIONS END ------------- #
 

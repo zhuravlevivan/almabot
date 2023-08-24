@@ -1,8 +1,5 @@
-import os
 import config
-
-from aiogram import types, Dispatcher
-from aiogram.dispatcher.filters import Text
+from aiogram import types
 from create_bot import bot
 from database import sqlite_db
 from keyboards.user_kb import user_kb
@@ -23,7 +20,6 @@ async def start_cmd(message: types.Message):
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
         if is_admin(message):
             for ids in config.ADMINS:
-                # print(i)
                 await bot.send_message(ids,
                                        f"Сообщение от пользователя: \n"
                                        f"Логин: @{message.from_user.username} \n"
@@ -38,7 +34,6 @@ async def start_cmd(message: types.Message):
 
 async def help_cmd(message: types.Message):
     if not is_admin(message):
-        print(is_admin(message))
         await bot.send_message(message.chat.id,
                                "Список доступных лекций: __files__\n"
                                "Чтобы получить файл: __getfile__",
@@ -63,7 +58,7 @@ async def files_cmd(message):
     await sqlite_db.show_files(message)
 
 
-def register_handlers_user(dp: Dispatcher):
-    dp.register_message_handler(start_cmd, commands=['start'])
-    dp.register_message_handler(help_cmd, commands=['help'])
-    dp.register_message_handler(files_cmd, Text(equals='files', ignore_case=True))
+# def register_handlers_user(dp: Dispatcher):
+#     dp.register_message_handler(start_cmd, commands=['start'])
+#     dp.register_message_handler(help_cmd, commands=['help'])
+#     dp.register_message_handler(files_cmd, Text(equals='files', ignore_case=True))
