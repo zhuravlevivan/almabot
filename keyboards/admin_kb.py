@@ -41,7 +41,7 @@ cancel_menu_kb.row(cmkb1)
 admin_access_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
 
 akb1 = KeyboardButton('give_accept')
-akb2 = KeyboardButton('delete_accept')
+akb2 = KeyboardButton('del_accept')
 akb3 = KeyboardButton('mailing')
 akb4 = KeyboardButton('go_back')
 admin_access_kb.add(akb3, akb1, akb2, akb4)

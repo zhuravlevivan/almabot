@@ -38,8 +38,10 @@ async def start_cmd(message: types.Message):
 async def help_cmd(message: types.Message):
     if message.chat.id not in config.ADMINS:
         await bot.send_message(message.chat.id,
-                               "Список доступных лекций: /files\n"
-                               "Чтобы получить файл: /getfile", reply_markup=user_kb
+                               "Список доступных лекций: __files__\n"
+                               "Чтобы получить файл: __getfile__",
+                               parse_mode="MarkdownV2",
+                               reply_markup=user_kb
                                )
     else:
         await bot.send_message(message.chat.id,
@@ -48,7 +50,8 @@ async def help_cmd(message: types.Message):
                                "Список загруженных файлов __files__\n"
                                "Удалить файл по имени __remove__\n"
                                "Переименовать файл __rename__\n"
-                               "Список пользователей __users__\n",
+                               "Список пользователей __users__\n"
+                               "Получить файл __getfile__\n",
                                parse_mode="MarkdownV2",
                                reply_markup=admin_menu_kb
                                )
@@ -61,5 +64,4 @@ async def files_cmd(message):
 def register_handlers_user(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])
     dp.register_message_handler(help_cmd, commands=['help'])
-    dp.register_message_handler(files_cmd, commands=['files'])
-    dp.register_message_handler(files_cmd, Text(equals='files'))
+    dp.register_message_handler(files_cmd, Text(equals='files', ignore_case=True))
