@@ -7,6 +7,7 @@ from create_bot import bot
 from database import sqlite_db
 from keyboards.user_kb import user_kb
 from keyboards.admin_kb import admin_menu_kb
+from handlers.admin import is_admin
 
 
 async def start_cmd(message: types.Message):
@@ -20,7 +21,7 @@ async def start_cmd(message: types.Message):
                                                                      ))
         sqlite_db.base.commit()
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
-        if message.chat.id not in config.ADMINS:
+        if is_admin(message):
             for ids in config.ADMINS:
                 # print(i)
                 await bot.send_message(ids,
@@ -36,7 +37,8 @@ async def start_cmd(message: types.Message):
 
 
 async def help_cmd(message: types.Message):
-    if message.chat.id not in config.ADMINS:
+    if not is_admin(message):
+        print(is_admin(message))
         await bot.send_message(message.chat.id,
                                "Список доступных лекций: __files__\n"
                                "Чтобы получить файл: __getfile__",

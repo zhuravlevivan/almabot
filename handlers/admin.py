@@ -39,7 +39,7 @@ class MailingState(StatesGroup):
 
 
 def is_admin(message):
-    return message.chat.id in config.ADMINS
+    return str(message.chat.id) in config.ADMINS
 
 
 async def go_back(message: types.Message):

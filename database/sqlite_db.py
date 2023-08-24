@@ -2,6 +2,7 @@ import sqlite3 as sq
 import config
 import os
 from create_bot import bot
+from handlers.admin import is_admin
 
 base = None
 cur = None
@@ -40,14 +41,14 @@ async def sql_add_users_cmd(message):
 
 
 async def show_users(message):
-    if message.chat.id in config.ADMINS:
+    if is_admin(message):
         for value in cur.execute("SELECT * FROM users").fetchall():
             await bot.send_message(message.chat.id,
                                    f"{value[1]} <code>{value[0]}</code> {value[2]} {value[3]}", parse_mode="html")
 
 
 async def show_files(message):
-    if message.chat.id in config.ADMINS:
+    if is_admin(message):
         for value in cur.execute("SELECT * FROM lections").fetchall():
             if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
                 await bot.send_message(message.chat.id,

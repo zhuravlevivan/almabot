@@ -1,8 +1,10 @@
 import os
+import dotenv
 
-# TOKEN = '1695523214:AAEDkyqdlAlScroGFrb5PMdftuKc90fchZ8'
-ADMINS = (101675480,)
-DIR = '/files'
+dotenv.load_dotenv()
+
+ADMINS = os.getenv('ADMINS')
+
 FILES = os.listdir('files/')
 
 
