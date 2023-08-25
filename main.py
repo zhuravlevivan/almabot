@@ -1,6 +1,6 @@
 from aiogram.utils import executor
 from create_bot import dp
-from handlers import user, admin, register_mh
+from handlers import register_mh
 from database import sqlite_db
 
 

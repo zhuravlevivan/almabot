@@ -47,6 +47,14 @@ async def show_users(message):
                                    f"{value[1]} <code>{value[0]}</code> {value[2]} {value[3]}", parse_mode="html")
 
 
+async def users_list(message):
+    users = []
+    if is_admin(message):
+        for user in cur.execute("SELECT chatid FROM users").fetchall():
+            users.append(user)
+    return users
+
+
 async def show_files(message):
     if is_admin(message):
         for value in cur.execute("SELECT * FROM lections").fetchall():

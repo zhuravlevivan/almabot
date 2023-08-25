@@ -38,7 +38,8 @@ cancel_menu_kb.row(cmkb1)
 # ------------ CANCEL KB END ------------ #
 
 # ------------ ACCESS REPLY KB START ------------ #
-admin_access_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+admin_access_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, input_field_placeholder='Cancel '
+                                                                                                            'available')
 
 akb1 = KeyboardButton('give_accept')
 akb2 = KeyboardButton('del_accept')

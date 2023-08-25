@@ -81,11 +81,15 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 # ------------- RENAME CMD START ------------- #
 async def process_old_name_step(message: types.Message, state: FSMContext):
-    old_name = message.text
 
-    await message.answer("Введите новое имя файла:")
-    await state.update_data(old_name=old_name)
-    await RenameFile.NewName.set()
+    old_name = message.text
+    if old_name in os.listdir('files/'):
+        await message.answer("Введите новое имя файла:")
+        await state.update_data(old_name=old_name)
+        await RenameFile.NewName.set()
+    else:
+        await message.answer("Файл с таким именем не найден", reply_markup=admin_menu_kb)
+        await state.finish()
 
 
 async def process_new_name_step(message: types.Message, state: FSMContext):
@@ -95,6 +99,7 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 
     try:
         sqlite_db.cur.execute(f"UPDATE lections SET path = '{new_name}' WHERE path = '{old_name}'")
+        sqlite_db.cur.execute(f"UPDATE access SET alectionid = '{new_name}' WHERE alectionid = '{old_name}'")
         sqlite_db.base.commit()
         os.rename(os.path.join('files/', f'{old_name}'), os.path.join('files/', f'{new_name}'))
         await message.answer(f"Файл успешно переименован в {new_name}", reply_markup=admin_menu_kb)
@@ -160,7 +165,7 @@ async def process_get_file(message: types.Message, state: FSMContext):
     # noinspection PyBroadException
     user_id = message.chat.id
     file_name = message.text
-    if file_name in config.FILES:
+    if file_name in os.listdir('files/'):
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = {user_id} AND alectionid = '{file_name}'")
         if len(sqlite_db.cur.fetchall()) == 0:
@@ -196,12 +201,12 @@ async def giving_access(message: types.Message):
 async def process_user_id(message: types.Message, state: FSMContext):
     user_id = message.text
     # Сохранение ID пользователя в контексте FSM
-    if user_id.isdigit():
+    if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
         await state.update_data(user_id=user_id)
         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
         await AccessToFilesStates.waiting_for_file_name.set()
     else:
-        await message.reply("Это не ID", reply_markup=admin_menu_kb)
+        await message.reply("ID не найден", reply_markup=admin_menu_kb)
         await state.finish()
 
 
@@ -210,7 +215,7 @@ async def process_file_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_id = data.get("user_id")
     # Проверка наличия файла в базе данных по имени
-    if lecture in config.FILES:
+    if lecture in os.listdir('files/'):
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = '{user_id}'"
             f"AND alectionid = '{lecture}'"
@@ -247,12 +252,12 @@ async def delete_access(message: types.Message):
 async def process_delete_user_id(message: types.Message, state: FSMContext):
     user_id = message.text
     # Сохранение ID пользователя в контексте FSM
-    if user_id.isdigit():
+    if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
         await state.update_data(user_id=user_id)
         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
         await AccessToFilesStates.waiting_for_delete_file_name.set()
     else:
-        await message.reply("Это не ID", reply_markup=admin_menu_kb)
+        await message.reply("ID не найден", reply_markup=admin_menu_kb)
         await state.finish()
 
 
@@ -261,7 +266,7 @@ async def process_delete_file_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_id = data.get("user_id")
     # Проверка наличия файла в базе данных по имени
-    if lecture in config.FILES:
+    if lecture in os.listdir('files/'):
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = '{user_id}'"
             f"AND alectionid = '{lecture}'"
