@@ -1,5 +1,4 @@
 import sqlite3 as sq
-import config
 import os
 from create_bot import bot
 from handlers.admin import is_admin
@@ -32,15 +31,22 @@ def sql_start():
     base.commit()
 
 
-async def sql_add_users_cmd(message):
+async def sql_add_user_cmd(message):
+    global base, cur
+    base = sq.connect('users.db', check_same_thread=False)
+    cur = base.cursor()
     cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
                                                        message.from_user.username,
                                                        message.from_user.first_name,
                                                        message.from_user.last_name
                                                        ))
+    base.commit()
 
 
 async def show_users(message):
+    global base, cur
+    base = sq.connect('users.db', check_same_thread=False)
+    cur = base.cursor()
     if is_admin(message):
         for value in cur.execute("SELECT * FROM users").fetchall():
             await bot.send_message(message.chat.id,
@@ -48,14 +54,20 @@ async def show_users(message):
 
 
 async def users_list(message):
+    global base, cur
+    base = sq.connect('users.db', check_same_thread=False)
+    cur = base.cursor()
     users = []
     if is_admin(message):
         for user in cur.execute("SELECT chatid FROM users").fetchall():
-            users.append(user)
+            users.append(*user)
     return users
 
 
 async def show_files(message):
+    global base, cur
+    base = sq.connect('users.db', check_same_thread=False)
+    cur = base.cursor()
     if is_admin(message):
         for value in cur.execute("SELECT * FROM lections").fetchall():
             if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:

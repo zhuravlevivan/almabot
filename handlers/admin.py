@@ -19,6 +19,10 @@ class RemoveFile(StatesGroup):
     FileRemoveName = State()  # Состояние ожидания имени файла
 
 
+class RemoveUser(StatesGroup):
+    UserIDTORemove = State()
+
+
 class GetFile(StatesGroup):
     FileName = State()  # Состояние ожидания имени файла
 
@@ -136,6 +140,34 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
 
 
 # ------------- REMOVE CMD END ------------- #
+
+
+# ------------- REMOVE USER START ------------- #
+async def remove_user_cmd(message: types.Message):
+    if is_admin(message):
+        await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
+        await RemoveUser.UserIDTORemove.set()
+
+
+async def process_remove_user_step(message: types.Message, state: FSMContext):
+    # noinspection PyBroadException
+    user_id = message.text
+    # Сохранение ID пользователя в контексте FSM
+    if user_id in await sqlite_db.users_list(message):
+        try:
+            sqlite_db.cur.execute(f'DELETE FROM users WHERE chatid = "{message.text}"')
+            sqlite_db.cur.execute(f'DELETE FROM access WHERE auserid = "{message.text}"')
+            sqlite_db.base.commit()
+            await message.answer("Пользователь удален", reply_markup=admin_menu_kb)
+        except Exception as e:
+            await message.answer(f"Ошибка при удалении: {e}", reply_markup=admin_menu_kb)
+    else:
+        await message.answer("Пользователь не найден", reply_markup=admin_menu_kb)
+        await state.finish()
+    await state.finish()
+
+
+# ------------- REMOVE USER END ------------- #
 
 
 # ------------- USERS CMD START ------------- #

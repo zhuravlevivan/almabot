@@ -8,7 +8,7 @@ from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
     process_text_mailing, voice_processing, handle_audio_or_document,\
     go_back, mailing, get_file,\
     RenameFile, RemoveFile, AccessToFilesStates, MailingState,\
-    GetFile, types
+    GetFile, types, RemoveUser, remove_user_cmd, process_remove_user_step
 from create_bot import Dispatcher
 
 
@@ -30,6 +30,9 @@ def register_handlers_admin(dp: Dispatcher):
 
     dp.register_message_handler(remove_cmd, Text(equals='remove', ignore_case=True), state=None)
     dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
+
+    dp.register_message_handler(remove_user_cmd, Text(equals='del_user', ignore_case=True), state=None)
+    dp.register_message_handler(process_remove_user_step, state=RemoveUser.UserIDTORemove)
 
     dp.register_message_handler(giving_access, Text(equals='give_accept', ignore_case=True))
     dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)

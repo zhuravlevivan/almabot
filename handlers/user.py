@@ -10,13 +10,9 @@ from handlers.admin import is_admin
 async def start_cmd(message: types.Message):
     sqlite_db.cur.execute(
         f"SELECT chatid FROM users WHERE chatid = '{message.chat.id}'")  # есть ли такая запись в таблице
+
     if sqlite_db.cur.fetchone() is None:  # если такой записи нет, то:
-        sqlite_db.cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
-                                                                     message.from_user.username,
-                                                                     message.from_user.first_name,
-                                                                     message.from_user.last_name
-                                                                     ))
-        sqlite_db.base.commit()
+        await sqlite_db.sql_add_user_cmd(message)
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
         if is_admin(message):
             for ids in config.ADMINS:
