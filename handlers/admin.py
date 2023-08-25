@@ -184,13 +184,13 @@ async def get_file(message: types.Message):
     sqlite_db.cur.execute(f"SELECT auserid FROM access WHERE auserid = '{message.chat.id}'")
     result = sqlite_db.cur.fetchall()
     try:
-        if message.chat.id not in result[0]:
+        if len(result) == 0:
             await message.answer("Нет доступа...")
         else:
             await message.answer("Введите название файла:")
             await GetFile.FileName.set()
     except Exception as e:
-        await message.answer(str(e), reply_markup=admin_menu_kb)
+        await message.answer(str(e))
 
 
 async def process_get_file(message: types.Message, state: FSMContext):
