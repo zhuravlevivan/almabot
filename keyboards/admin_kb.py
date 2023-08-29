@@ -43,10 +43,13 @@ admin_access_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=Tr
 
 akb1 = KeyboardButton('give_accept')
 akb2 = KeyboardButton('del_accept')
-akb3 = KeyboardButton('mailing')
-akb5 = KeyboardButton('del_user')
-akb4 = KeyboardButton('go_back')
-admin_access_kb.add(akb3, akb1, akb2, akb5, akb4)
+akb3 = KeyboardButton('show_acc')
+akb4 = KeyboardButton('del_user')
+
+akb5 = KeyboardButton('mailing')
+akb6 = KeyboardButton('go_back')
+admin_access_kb.row(akb1, akb2, akb3)
+admin_access_kb.row(akb4, akb5, akb6)
 # ------------ ACCESS REPLY KB END ------------ #
 
 

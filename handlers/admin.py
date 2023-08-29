@@ -32,6 +32,7 @@ class AccessToFilesStates(StatesGroup):
     waiting_for_file_name = State()
     waiting_for_delete_user_id = State()
     waiting_for_delete_file_name = State()
+    waiting_for_user_access_id = State()
 
 
 class MailingState(StatesGroup):
@@ -345,6 +346,30 @@ async def process_text_mailing(message: types.Message, state: FSMContext):
 
 # ------------- MAILING END ------------- #
 
+# ------------- SHOW USER ACCESS START ------------- #
+
+async def show_user_access(message: types.Message):
+    if is_admin(message):
+        await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
+        await AccessToFilesStates.waiting_for_user_access_id.set()
+
+
+async def process_user_access_id(message: types.Message, state: FSMContext):
+    user_id = message.text
+    # Сохранение ID пользователя в контексте FSM
+    if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
+        await state.update_data(user_id=user_id)
+        user_access = await sqlite_db.show_user_access(user_id)
+        await message.reply("Доступ выдан к файлам:")
+        for line in user_access:
+            await message.answer(line, reply_markup=admin_menu_kb)
+    else:
+        await message.reply("ID не найден", reply_markup=admin_menu_kb)
+        await state.finish()
+
+    await state.finish()
+# ------------- SHOW USER ACCESS END ------------- #
+
 
 # ------------- PROCESSING VOICE START ------------- #
 async def voice_processing(message: types.Message):
@@ -355,7 +380,7 @@ async def voice_processing(message: types.Message):
             await message.voice.download(destination_file=f"files/{file_name}")
             sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [f'{file_name}'])
             sqlite_db.base.commit()
-            await message.reply(f"Сохранено с именем {file_name}")
+            await message.reply(f"Сохранено с именем `{file_name}`", parse_mode="MarkdownV2")
         except Exception as e:
             await message.reply(str(e))
     else:
@@ -379,7 +404,8 @@ async def handle_audio_or_document(message: types.Message):
                 sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [message.audio.file_name])
                 sqlite_db.base.commit()
 
-                await message.answer(f'Успешно сохранено\n Имя файла: {message.audio.file_name}!')
+                await message.answer(f'Успешно сохранено\n Имя файла: `{message.audio.file_name}`!',
+                                     parse_mode="MarkdownV2")
             elif message.document:
                 file_info = await bot.get_file(message.document.file_id)
                 downloaded_file = await bot.download_file(file_info.file_path)
@@ -390,7 +416,8 @@ async def handle_audio_or_document(message: types.Message):
                 sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [message.audio.file_name])
                 sqlite_db.base.commit()
 
-                await message.answer(f'Успешно сохранено\n Имя файла: {message.document.file_name}!')
+                await message.answer(f'Успешно сохранено\n Имя файла: `{message.document.file_name}`!',
+                                     parse_mode="MarkdownV2")
 
         except Exception as e:
             await message.answer(str(e))
