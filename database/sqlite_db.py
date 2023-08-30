@@ -11,6 +11,7 @@ base = None
 cur = None
 
 
+
 def sql_start():
     global base, cur
     base = sq.connect('users.db', check_same_thread=False)

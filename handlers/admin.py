@@ -86,7 +86,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 # ------------- RENAME CMD START ------------- #
 async def process_old_name_step(message: types.Message, state: FSMContext):
-
     old_name = message.text
     if old_name in os.listdir('files/'):
         await message.answer("Введите новое имя файла:")
@@ -224,14 +223,116 @@ async def process_get_file(message: types.Message, state: FSMContext):
 
 
 # ------------- GIVING ACCESS START ------------- #
+#
+# async def giving_access(message: types.Message):
+#     if is_admin(message):
+#         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
+#         await AccessToFilesStates.waiting_for_user_id.set()
+#
+#
+# async def process_user_id(message: types.Message, state: FSMContext):
+#     user_id = message.text
+#     # Сохранение ID пользователя в контексте FSM
+#     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
+#         await state.update_data(user_id=user_id)
+#         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
+#         await AccessToFilesStates.waiting_for_file_name.set()
+#     else:
+#         await message.reply("ID не найден", reply_markup=admin_menu_kb)
+#         await state.finish()
+#
+#
+# async def process_file_name(message: types.Message, state: FSMContext):
+#     lecture = message.text
+#     data = await state.get_data()
+#     user_id = data.get("user_id")
+#     # Проверка наличия файла в базе данных по имени
+#     if lecture in os.listdir('files/'):
+#         sqlite_db.cur.execute(
+#             f"SELECT * FROM access WHERE auserid = '{user_id}'"
+#             f"AND alectionid = '{lecture}'"
+#         )
+#         if sqlite_db.cur.fetchone() is None:
+#             sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
+#                                   (f'{user_id}',
+#                                    f'{lecture}')
+#                                   )
+#             sqlite_db.base.commit()
+#             await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
+#
+#                                                     f"к файлу {lecture}", reply_markup=admin_menu_kb)
+#         else:
+#             await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
+#     else:
+#         await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
+#
+#     # Сброс состояния FSM
+#     await state.finish()
+#
+#
+# # ------------- GIVING ACCESS END ------------- #
+#
+#
+# # ------------- DELETE ACCESS START ------------- #
+#
+# async def delete_access(message: types.Message):
+#     if is_admin(message):
+#         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
+#         await AccessToFilesStates.waiting_for_delete_user_id.set()
+#
+#
+# async def process_delete_user_id(message: types.Message, state: FSMContext):
+#     user_id = message.text
+#     # Сохранение ID пользователя в контексте FSM
+#     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
+#         await state.update_data(user_id=user_id)
+#         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
+#         await AccessToFilesStates.waiting_for_delete_file_name.set()
+#     else:
+#         await message.reply("ID не найден", reply_markup=admin_menu_kb)
+#         await state.finish()
+#
+#
+# async def process_delete_file_name(message: types.Message, state: FSMContext):
+#     lecture = message.text
+#     data = await state.get_data()
+#     user_id = data.get("user_id")
+#     # Проверка наличия файла в базе данных по имени
+#     if lecture in os.listdir('files/'):
+#         sqlite_db.cur.execute(
+#             f"SELECT * FROM access WHERE auserid = '{user_id}'"
+#             f"AND alectionid = '{lecture}'"
+#         )
+#         if sqlite_db.cur.fetchone() is None:
+#             await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
+#         else:
+#             sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
+#                                   f"AND alectionid = '{lecture}'",
+#                                   )
+#             sqlite_db.base.commit()
+#             await message.answer(f"Успешно! отозвали доступ у - {user_id} "
+#                                  f"к файлу {lecture}", reply_markup=admin_menu_kb)
+#     else:
+#         await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
+#
+#     # Сброс состояния FSM
+#     await state.finish()
+#
 
-async def giving_access(message: types.Message):
+# ------------- DELETE ACCESS END ------------- #
+# ------------- GIVE_DELETE ACCESS START ------------- #
+action = ""
+
+
+async def give_or_del_access(message: types.Message):
+    global action
+    action = message.text
     if is_admin(message):
         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
         await AccessToFilesStates.waiting_for_user_id.set()
 
 
-async def process_user_id(message: types.Message, state: FSMContext):
+async def process_god_user_id(message: types.Message, state: FSMContext):
     user_id = message.text
     # Сохранение ID пользователя в контексте FSM
     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
@@ -243,7 +344,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
         await state.finish()
 
 
-async def process_file_name(message: types.Message, state: FSMContext):
+async def process_god_file_name(message: types.Message, state: FSMContext):
     lecture = message.text
     data = await state.get_data()
     user_id = data.get("user_id")
@@ -253,74 +354,38 @@ async def process_file_name(message: types.Message, state: FSMContext):
             f"SELECT * FROM access WHERE auserid = '{user_id}'"
             f"AND alectionid = '{lecture}'"
         )
-        if sqlite_db.cur.fetchone() is None:
-            sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
-                                  (f'{user_id}',
-                                   f'{lecture}')
-                                  )
-            sqlite_db.base.commit()
-            await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
 
-                                                    f"к файлу {lecture}", reply_markup=admin_menu_kb)
-        else:
-            await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
+        if action == "give_accept":
+            if sqlite_db.cur.fetchone() is None:
+                sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
+                                      (f'{user_id}',
+                                       f'{lecture}')
+                                      )
+                sqlite_db.base.commit()
+                await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
+
+                                                        f"к файлу {lecture}", reply_markup=admin_menu_kb)
+            else:
+                await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
+
+        if action == "del_accept":
+            if sqlite_db.cur.fetchone() is None:
+                await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
+            else:
+                sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
+                                      f"AND alectionid = '{lecture}'",
+                                      )
+                sqlite_db.base.commit()
+                await message.answer(f"Успешно! отозвали доступ у - {user_id} "
+                                     f"к файлу {lecture}", reply_markup=admin_menu_kb)
+
     else:
         await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
 
     # Сброс состояния FSM
     await state.finish()
+# ------------- GIVE_DELETE ACCESS END ------------- #
 
-
-# ------------- GIVING ACCESS END ------------- #
-
-
-# ------------- DELETE ACCESS START ------------- #
-
-async def delete_access(message: types.Message):
-    if is_admin(message):
-        await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
-        await AccessToFilesStates.waiting_for_delete_user_id.set()
-
-
-async def process_delete_user_id(message: types.Message, state: FSMContext):
-    user_id = message.text
-    # Сохранение ID пользователя в контексте FSM
-    if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
-        await state.update_data(user_id=user_id)
-        await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
-        await AccessToFilesStates.waiting_for_delete_file_name.set()
-    else:
-        await message.reply("ID не найден", reply_markup=admin_menu_kb)
-        await state.finish()
-
-
-async def process_delete_file_name(message: types.Message, state: FSMContext):
-    lecture = message.text
-    data = await state.get_data()
-    user_id = data.get("user_id")
-    # Проверка наличия файла в базе данных по имени
-    if lecture in os.listdir('files/'):
-        sqlite_db.cur.execute(
-            f"SELECT * FROM access WHERE auserid = '{user_id}'"
-            f"AND alectionid = '{lecture}'"
-        )
-        if sqlite_db.cur.fetchone() is None:
-            await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
-        else:
-            sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
-                                  f"AND alectionid = '{lecture}'",
-                                  )
-            sqlite_db.base.commit()
-            await message.answer(f"Успешно! отозвали доступ у - {user_id} "
-                                 f"к файлу {lecture}", reply_markup=admin_menu_kb)
-    else:
-        await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
-
-    # Сброс состояния FSM
-    await state.finish()
-
-
-# ------------- DELETE ACCESS END ------------- #
 
 # ------------- MAILING START ------------- #
 async def mailing(message: types.Message):
@@ -368,6 +433,8 @@ async def process_user_access_id(message: types.Message, state: FSMContext):
         await state.finish()
 
     await state.finish()
+
+
 # ------------- SHOW USER ACCESS END ------------- #
 
 
@@ -423,7 +490,6 @@ async def handle_audio_or_document(message: types.Message):
             await message.answer(str(e))
     else:
         await message.answer('Вам нельзя!')
-
 
 # ------------- PROCESSING SAVE AUDIO END ------------- #
 
