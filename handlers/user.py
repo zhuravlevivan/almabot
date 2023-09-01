@@ -32,7 +32,8 @@ async def help_cmd(message: types.Message):
     if not is_admin(message):
         await bot.send_message(message.chat.id,
                                "Список доступных лекций: __files__\n"
-                               "Чтобы получить файл: __getfile__",
+                               "Чтобы получить файл: __getfile__\n"
+                               "Узнать свой ID: __my id__\n",
                                parse_mode="MarkdownV2",
                                reply_markup=user_kb
                                )
@@ -52,6 +53,10 @@ async def help_cmd(message: types.Message):
 
 async def files_cmd(message):
     await sqlite_db.show_files(message)
+
+
+async def my_id(message: types.Message):
+    await message.answer(f'ID \= `{message.chat.id}`', parse_mode="MarkdownV2")
 
 
 # def register_handlers_user(dp: Dispatcher):

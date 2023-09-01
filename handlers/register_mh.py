@@ -1,5 +1,5 @@
 from aiogram.dispatcher.filters import Text
-from handlers.user import start_cmd, help_cmd, files_cmd
+from handlers.user import start_cmd, help_cmd, files_cmd, my_id
 from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
     users_cmd, \
     give_or_del_access, process_god_user_id, process_god_file_name, \
@@ -18,6 +18,7 @@ def register_handlers_user(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])
     dp.register_message_handler(help_cmd, commands=['help'])
     dp.register_message_handler(files_cmd, Text(equals='files', ignore_case=True))
+    dp.register_message_handler(my_id, Text(equals='my id', ignore_case=True))
 
 
 def register_handlers_admin(dp: Dispatcher):

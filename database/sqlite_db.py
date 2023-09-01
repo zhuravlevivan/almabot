@@ -6,10 +6,8 @@ from aiogram import types
 from create_bot import bot
 from handlers.admin import is_admin
 
-
 base = None
 cur = None
-
 
 
 def sql_start():
@@ -55,7 +53,7 @@ async def show_users(message):
     if is_admin(message):
         for value in cur.execute("SELECT * FROM users").fetchall():
             await bot.send_message(message.chat.id,
-                                   f"{value[1]} <code>{value[0]}</code> {value[2]} {value[3]}", parse_mode="html")
+                                   f"<code>{value[0]}</code> @{value[1]} {value[2]} {value[3]}", parse_mode="html")
 
 
 async def show_user_access(message):
@@ -89,7 +87,7 @@ async def show_files(message: types.Message):
             if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
                 # await bot.send_message(message.chat.id,
                 await message.answer(
-                                       f"ID=<code>{value[0]}</code> NAME=<code>{value[1]}</code>", parse_mode="html")
+                    f"ID=<code>{value[0]}</code> NAME=<code>{value[1]}</code>", parse_mode="html")
             else:
                 # await bot.send_message(message.chat.id, "Файлов нет")
                 await message.answer("Файлов нет")
