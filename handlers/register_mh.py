@@ -9,8 +9,9 @@ from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
     go_back, mailing, get_file,\
     RenameFile, RemoveFile, AccessToFilesStates, MailingState,\
     GetFile, types, RemoveUser, remove_user_cmd, process_remove_user_step,\
-    show_user_access, process_user_access_id
-# giving_access, delete_access,process_file_name,process_delete_file_name, process_delete_user_id, process_user_id,\
+    show_user_access, process_user_access_id,\
+    FileCaption, add_caption_to_file, process_file_caption_step, process_file_name_caption_step
+
 from create_bot import Dispatcher
 
 
@@ -37,14 +38,6 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(remove_user_cmd, Text(equals='del_user', ignore_case=True), state=None)
     dp.register_message_handler(process_remove_user_step, state=RemoveUser.UserIDTORemove)
 
-    # dp.register_message_handler(giving_access, Text(equals='give_accept', ignore_case=True))
-    # dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)
-    # dp.register_message_handler(process_file_name, state=AccessToFilesStates.waiting_for_file_name)
-    #
-    # dp.register_message_handler(delete_access, Text(equals='del_accept', ignore_case=True))
-    # dp.register_message_handler(process_delete_user_id, state=AccessToFilesStates.waiting_for_delete_user_id)
-    # dp.register_message_handler(process_delete_file_name, state=AccessToFilesStates.waiting_for_delete_file_name)
-
     dp.register_message_handler(give_or_del_access, Text(equals='del_accept', ignore_case=True))
     dp.register_message_handler(give_or_del_access, Text(equals='give_accept', ignore_case=True))
     dp.register_message_handler(process_god_user_id, state=AccessToFilesStates.waiting_for_user_id)
@@ -62,5 +55,9 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(handle_audio_or_document, content_types=[types.ContentType.AUDIO,
                                                                          types.ContentType.DOCUMENT])
 
-    dp.register_message_handler(show_user_access, Text(equals='show_acc', ignore_case=True))
-    dp.register_message_handler(process_user_access_id, state=AccessToFilesStates.waiting_for_user_access_id)
+    dp.register_message_handler(add_caption_to_file, Text(equals='caption', ignore_case=True))
+    dp.register_message_handler(process_file_name_caption_step, state=FileCaption.FileCaptionName)
+    dp.register_message_handler(process_file_caption_step, state=FileCaption.FileCaption)
+
+    # dp.register_message_handler(show_user_access, Text(equals='show_acc', ignore_case=True))
+    # dp.register_message_handler(process_user_access_id, state=AccessToFilesStates.waiting_for_user_access_id)

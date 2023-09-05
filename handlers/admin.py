@@ -27,6 +27,11 @@ class GetFile(StatesGroup):
     FileName = State()  # Состояние ожидания имени файла
 
 
+class FileCaption(StatesGroup):
+    FileCaptionName = State()
+    FileCaption = State()
+
+
 class AccessToFilesStates(StatesGroup):
     waiting_for_user_id = State()
     waiting_for_file_name = State()
@@ -84,7 +89,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 # ---- STATE CANCEL END ------------ #
 
-# ------------- RENAME CMD START ------------- #
 async def process_old_name_step(message: types.Message, state: FSMContext):
     old_name = message.text
     if old_name in os.listdir('files/'):
@@ -197,6 +201,7 @@ async def process_get_file(message: types.Message, state: FSMContext):
     # noinspection PyBroadException
     user_id = message.chat.id
     file_name = message.text
+    file_caption = await sqlite_db.get_caption(file_name)
     if file_name in os.listdir('files/'):
         sqlite_db.cur.execute(
             f"SELECT * FROM access WHERE auserid = {user_id} AND alectionid = '{file_name}'")
@@ -207,7 +212,7 @@ async def process_get_file(message: types.Message, state: FSMContext):
             try:
                 await bot.send_audio(user_id, doc,
                                      protect_content=True,
-                                     caption="{SOME TEXT}")
+                                     caption=file_caption[0])
 
             except Exception as e:
                 await bot.send_message(user_id, str(e))
@@ -221,106 +226,6 @@ async def process_get_file(message: types.Message, state: FSMContext):
 
 # ------------- GETFILE END ------------- #
 
-
-# ------------- GIVING ACCESS START ------------- #
-#
-# async def giving_access(message: types.Message):
-#     if is_admin(message):
-#         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
-#         await AccessToFilesStates.waiting_for_user_id.set()
-#
-#
-# async def process_user_id(message: types.Message, state: FSMContext):
-#     user_id = message.text
-#     # Сохранение ID пользователя в контексте FSM
-#     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
-#         await state.update_data(user_id=user_id)
-#         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
-#         await AccessToFilesStates.waiting_for_file_name.set()
-#     else:
-#         await message.reply("ID не найден", reply_markup=admin_menu_kb)
-#         await state.finish()
-#
-#
-# async def process_file_name(message: types.Message, state: FSMContext):
-#     lecture = message.text
-#     data = await state.get_data()
-#     user_id = data.get("user_id")
-#     # Проверка наличия файла в базе данных по имени
-#     if lecture in os.listdir('files/'):
-#         sqlite_db.cur.execute(
-#             f"SELECT * FROM access WHERE auserid = '{user_id}'"
-#             f"AND alectionid = '{lecture}'"
-#         )
-#         if sqlite_db.cur.fetchone() is None:
-#             sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
-#                                   (f'{user_id}',
-#                                    f'{lecture}')
-#                                   )
-#             sqlite_db.base.commit()
-#             await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
-#
-#                                                     f"к файлу {lecture}", reply_markup=admin_menu_kb)
-#         else:
-#             await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
-#     else:
-#         await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
-#
-#     # Сброс состояния FSM
-#     await state.finish()
-#
-#
-# # ------------- GIVING ACCESS END ------------- #
-#
-#
-# # ------------- DELETE ACCESS START ------------- #
-#
-# async def delete_access(message: types.Message):
-#     if is_admin(message):
-#         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
-#         await AccessToFilesStates.waiting_for_delete_user_id.set()
-#
-#
-# async def process_delete_user_id(message: types.Message, state: FSMContext):
-#     user_id = message.text
-#     # Сохранение ID пользователя в контексте FSM
-#     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
-#         await state.update_data(user_id=user_id)
-#         await message.answer("Введите название файла:", reply_markup=cancel_menu_kb)
-#         await AccessToFilesStates.waiting_for_delete_file_name.set()
-#     else:
-#         await message.reply("ID не найден", reply_markup=admin_menu_kb)
-#         await state.finish()
-#
-#
-# async def process_delete_file_name(message: types.Message, state: FSMContext):
-#     lecture = message.text
-#     data = await state.get_data()
-#     user_id = data.get("user_id")
-#     # Проверка наличия файла в базе данных по имени
-#     if lecture in os.listdir('files/'):
-#         sqlite_db.cur.execute(
-#             f"SELECT * FROM access WHERE auserid = '{user_id}'"
-#             f"AND alectionid = '{lecture}'"
-#         )
-#         if sqlite_db.cur.fetchone() is None:
-#             await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
-#         else:
-#             sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
-#                                   f"AND alectionid = '{lecture}'",
-#                                   )
-#             sqlite_db.base.commit()
-#             await message.answer(f"Успешно! отозвали доступ у - {user_id} "
-#                                  f"к файлу {lecture}", reply_markup=admin_menu_kb)
-#     else:
-#         await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
-#
-#     # Сброс состояния FSM
-#     await state.finish()
-#
-
-# ------------- DELETE ACCESS END ------------- #
-# ------------- GIVE_DELETE ACCESS START ------------- #
 action = ""
 
 
@@ -438,6 +343,43 @@ async def process_user_access_id(message: types.Message, state: FSMContext):
 # ------------- SHOW USER ACCESS END ------------- #
 
 
+# ------------- ADD CAPTION START ------------- #
+async def add_caption_to_file(message: types.Message):
+    if is_admin(message):
+        await message.answer("Для добавления описания введите имя файла с расширением:",
+                             reply_markup=cancel_menu_kb)
+        await FileCaption.FileCaptionName.set()
+
+
+async def process_file_name_caption_step(message: types.Message, state: FSMContext):
+    # noinspection PyBroadException
+    lecture = message.text
+
+    if lecture in os.listdir('files/'):
+        await message.answer("Введите описание для файла:", reply_markup=cancel_menu_kb)
+        await state.update_data(lecture=lecture)
+        await FileCaption.FileCaption.set()
+    else:
+        await message.reply("Файл не найден", reply_markup=admin_menu_kb)
+        await state.finish()
+
+
+async def process_file_caption_step(message: types.Message, state: FSMContext):
+    caption = message.text
+    data = await state.get_data()
+    file_name = data.get('lecture')
+
+    sqlite_db.cur.execute(f"UPDATE lections SET caption = '{caption}' WHERE path = '{file_name}'")
+    sqlite_db.base.commit()
+
+    await bot.send_message(message.chat.id, f"Успешно! Описание добавлено", reply_markup=admin_menu_kb)
+
+    # Сброс состояния FSM
+    await state.finish()
+
+# ------------- ADD CAPTION END ------------- #
+
+
 # ------------- PROCESSING VOICE START ------------- #
 async def voice_processing(message: types.Message):
     if is_admin(message):
@@ -492,53 +434,3 @@ async def handle_audio_or_document(message: types.Message):
         await message.answer('Вам нельзя!')
 
 # ------------- PROCESSING SAVE AUDIO END ------------- #
-
-# ------------- HANDLER REGISTRATIONS START ------------- #
-# def register_handlers_admin(dp: Dispatcher):
-#     dp.register_message_handler(admin_cmd, Text(equals='admin', ignore_case=True))
-#
-#     dp.register_message_handler(rename_cmd, Text(equals='rename', ignore_case=True), state=None)
-#     dp.register_message_handler(cancel_handler, Text(equals='cancel', ignore_case=True), state='*')
-#     dp.register_message_handler(process_old_name_step, state=RenameFile.OldName)
-#     dp.register_message_handler(process_new_name_step, state=RenameFile.NewName)
-#
-#     dp.register_message_handler(users_cmd, Text(equals='users', ignore_case=True))
-#
-#     dp.register_message_handler(remove_cmd, Text(equals='remove', ignore_case=True), state=None)
-#     dp.register_message_handler(process_file_remove_step, state=RemoveFile.FileRemoveName)
-#
-#     dp.register_message_handler(giving_access, Text(equals='give_accept', ignore_case=True))
-#     dp.register_message_handler(process_user_id, state=AccessToFilesStates.waiting_for_user_id)
-#     dp.register_message_handler(process_file_name, state=AccessToFilesStates.waiting_for_file_name)
-#
-#     dp.register_message_handler(delete_access, Text(equals='del_accept', ignore_case=True))
-#     dp.register_message_handler(process_delete_user_id, state=AccessToFilesStates.waiting_for_delete_user_id)
-#     dp.register_message_handler(process_delete_file_name, state=AccessToFilesStates.waiting_for_delete_file_name)
-#
-#     dp.register_message_handler(go_back, Text(equals='go_back', ignore_case=True))
-#
-#     dp.register_message_handler(mailing, Text(equals='mailing', ignore_case=True))
-#     dp.register_message_handler(process_text_mailing, state=MailingState.waiting_text_mailing)
-#
-#     dp.register_message_handler(get_file, Text(equals='getfile', ignore_case=True))
-#     dp.register_message_handler(process_get_file, state=GetFile.FileName)
-#
-#     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
-#     dp.register_message_handler(handle_audio_or_document, content_types=[types.ContentType.AUDIO,
-#                                                                          types.ContentType.DOCUMENT])
-
-# ------------- HANDLER REGISTRATIONS END ------------- #
-
-# ------------- INLINE KB QUERY START ------------- #
-# async def query_handler(callback: types.CallbackQuery):
-#     await bot.answer_callback_query(callback_query_id=callback.id)
-#     answer = ''
-#     if callback.data == '1':
-#         answer = '[--------A-C-C-E-S-S---Z-O-N-E--------]'
-#         await bot.send_message(chat_id=callback.from_user.id,
-#                                text="[--------A-C-C-E-S-S---Z-O-N-E--------]",
-#                                reply_markup=admin_access_kb)
-#
-#     await bot.send_message(callback.message.chat.id, answer)
-#     await bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id)
-# ------------- INLINE KB QUERY END ------------- #

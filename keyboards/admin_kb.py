@@ -16,16 +16,18 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 # ------------ MENU KB START ------------ #
 arb1 = KeyboardButton('admin')
-arb2 = KeyboardButton('files')
+arb2 = KeyboardButton('users')
 arb3 = KeyboardButton('remove')
 arb4 = KeyboardButton('rename')
-arb5 = KeyboardButton('users')
+arb5 = KeyboardButton('files')
 arb6 = KeyboardButton('getfile')
+arb7 = KeyboardButton('caption')
 
 
 admin_menu_kb = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-admin_menu_kb.row(arb1, arb2, arb3)
-admin_menu_kb.row(arb4, arb5, arb6)
+admin_menu_kb.row(arb1, arb2)
+admin_menu_kb.row(arb3, arb4, arb5)
+admin_menu_kb.row(arb6, arb7)
 
 
 # ------------ MENU KB END ------------ #

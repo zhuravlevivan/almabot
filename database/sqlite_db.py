@@ -25,6 +25,7 @@ def sql_start():
     cur.execute("""CREATE TABLE IF NOT EXISTS lections(
                     lectionid INTEGER,
                     path TEXT,
+                    caption TEXT,
                     PRIMARY KEY("lectionid")
                 )""")
     cur.execute("""CREATE TABLE IF NOT EXISTS access(
@@ -102,3 +103,10 @@ async def show_files(message: types.Message):
         else:
             await message.answer('Файлов нет')
             # await bot.send_message(message.chat.id, 'Файлов нет')
+
+
+async def get_caption(file_name):
+    global base, cur
+    base = sq.connect('users.db', check_same_thread=False)
+    cur = base.cursor()
+    return cur.execute(f"SELECT caption FROM lections WHERE path = '{file_name}'").fetchone()

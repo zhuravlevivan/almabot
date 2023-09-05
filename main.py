@@ -11,7 +11,7 @@ async def on_startup(_):
 
 register_mh.register_handlers_user(dp)
 register_mh.register_handlers_admin(dp)
-# other.register_handlers_other(dp)
+# register_mh.register_handlers_other(dp)
 
 
 if __name__ == '__main__':
