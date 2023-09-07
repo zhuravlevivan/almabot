@@ -3,7 +3,7 @@ import os
 
 from aiogram import types
 
-from create_bot import bot
+from config import bot
 from handlers.admin import is_admin
 
 base = None

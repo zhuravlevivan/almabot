@@ -1,6 +1,6 @@
 import config
 from aiogram import types
-from create_bot import bot
+from config import bot
 from database import sqlite_db
 from keyboards.user_kb import user_kb
 from keyboards.admin_kb import admin_menu_kb

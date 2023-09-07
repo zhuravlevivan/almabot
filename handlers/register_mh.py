@@ -12,7 +12,7 @@ from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
     show_user_access, process_user_access_id,\
     FileCaption, add_caption_to_file, process_file_caption_step, process_file_name_caption_step
 
-from create_bot import Dispatcher
+from config import Dispatcher
 
 
 def register_handlers_user(dp: Dispatcher):
@@ -59,5 +59,5 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(process_file_name_caption_step, state=FileCaption.FileCaptionName)
     dp.register_message_handler(process_file_caption_step, state=FileCaption.FileCaption)
 
-    # dp.register_message_handler(show_user_access, Text(equals='show_acc', ignore_case=True))
-    # dp.register_message_handler(process_user_access_id, state=AccessToFilesStates.waiting_for_user_access_id)
+    dp.register_message_handler(show_user_access, Text(equals='show_acc', ignore_case=True))
+    dp.register_message_handler(process_user_access_id, state=AccessToFilesStates.waiting_for_user_access_id)

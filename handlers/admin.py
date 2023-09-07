@@ -1,7 +1,8 @@
+import os
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from create_bot import os, bot
+from config import bot
 import config
 from database import sqlite_db
 from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
@@ -48,7 +49,7 @@ class MailingState(StatesGroup):
 
 
 def is_admin(message):
-    return str(message.chat.id) in config.ADMINS
+    return message.chat.id in config.ADMINS
 
 
 async def go_back(message: types.Message):
