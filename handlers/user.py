@@ -17,7 +17,7 @@ async def start_cmd(message: types.Message):
         if is_admin(message):
             for ids in config.ADMINS:
                 await bot.send_message(ids,
-                                       f"Сообщение от пользователя: \n"
+                                       f"Новый пользователь:\n"
                                        f"Логин: @{message.from_user.username} \n"
                                        f"Имя: {message.from_user.first_name} \n"
                                        f"Фамилия: {message.from_user.last_name} \n"
