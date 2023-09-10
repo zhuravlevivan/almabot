@@ -1,4 +1,7 @@
+from aiogram import Bot
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import BotCommand
+from TEXTS import COMMANDS
 
 # ------------ INLINE KB START ------------ #
 # mkb1 = InlineKeyboardButton(text='admin', callback_data='1')
@@ -55,6 +58,13 @@ admin_access_kb.row(akb4, akb5, akb6)
 # ------------ ACCESS REPLY KB END ------------ #
 
 
+async def set_main_menu(bot: Bot):
+    main_menu_commands = [BotCommand(
+        command=command,
+        description=description
+    ) for command,
+        description in COMMANDS.items()]
+    await bot.set_my_commands(main_menu_commands)
 
 # ------------ ACCESS INLINE KB START ------------ #
 # admin_access_kb = InlineKeyboardMarkup(row_width=1)
