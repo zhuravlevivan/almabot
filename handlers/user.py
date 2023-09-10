@@ -58,8 +58,3 @@ async def files_cmd(message):
 async def my_id(message: types.Message):
     await message.answer(f'ID \= `{message.chat.id}`', parse_mode="MarkdownV2")
 
-
-# def register_handlers_user(dp: Dispatcher):
-#     dp.register_message_handler(start_cmd, commands=['start'])
-#     dp.register_message_handler(help_cmd, commands=['help'])
-#     dp.register_message_handler(files_cmd, Text(equals='files', ignore_case=True))
