@@ -83,26 +83,24 @@ async def show_files(message: types.Message):
     global base, cur
     base = sq.connect('users.db', check_same_thread=False)
     cur = base.cursor()
-    if is_admin(message):
+    files = os.listdir('files/')
+    if is_admin(message) and len(files) > 0:
         for value in cur.execute("SELECT * FROM lections").fetchall():
             if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
-                # await bot.send_message(message.chat.id,
                 await message.answer(
-                    f"ID=<code>{value[0]}</code> NAME=<code>{value[1]}</code>", parse_mode="html")
+                    f"NAME=<code>{value[1]}</code>\nCAPTION={value[2]}", parse_mode="html")
             else:
-                # await bot.send_message(message.chat.id, "Файлов нет")
                 await message.answer("Файлов нет")
     else:
-        files = os.listdir('files/')
         if len(files) > 0:
             await message.answer('Список файлов')
-            # await bot.send_message(message.chat.id, 'Список файлов')
-            for file in files:
-                await message.answer(f"`{file}`", parse_mode="MarkdownV2")
-                # await bot.send_message(message.chat.id, f"`{file}`", parse_mode="MarkdownV2")
+            for value in cur.execute("SELECT * FROM lections").fetchall():
+                if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
+                    await message.answer(
+                        f"NAME=<code>{value[1]}</code>\n{value[2]}", parse_mode="html")
         else:
             await message.answer('Файлов нет')
-            # await bot.send_message(message.chat.id, 'Файлов нет')
+
 
 
 async def get_caption(file_name):

@@ -426,7 +426,7 @@ async def handle_audio_or_document(message: types.Message):
                 sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [message.audio.file_name])
                 sqlite_db.base.commit()
 
-                await message.answer(f'Успешно сохранено\n Имя файла: `{message.document.file_name}`!',
+                await message.answer(f'Успешно сохранено\n Имя файла: `{message.document.file_name}`',
                                      parse_mode="MarkdownV2")
 
         except Exception as e:
