@@ -45,7 +45,7 @@ async def help_cmd(message: types.Message):
                                "Удалить файл по имени __remove__\n"
                                "Переименовать файл __rename__\n"
                                "Список пользователей __users__\n"
-                               "Получить файл __getfile__\n",
+                               "Получить файл __getfile__\n"
                                "Добавить описание файла __caption__",
                                parse_mode="MarkdownV2",
                                reply_markup=admin_menu_kb
