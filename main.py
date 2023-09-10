@@ -13,6 +13,5 @@ register_mh.register_handlers_user(dp)
 register_mh.register_handlers_admin(dp)
 
 
-
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
