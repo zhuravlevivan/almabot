@@ -84,23 +84,25 @@ async def show_files(message: types.Message):
     base = sq.connect('users.db', check_same_thread=False)
     cur = base.cursor()
     files = os.listdir('files/')
-    if is_admin(message) and len(files) > 0:
-        for value in cur.execute("SELECT * FROM lections").fetchall():
-            if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
-                await message.answer(
-                    f"NAME=<code>{value[1]}</code>\nCAPTION={value[2]}", parse_mode="html")
-            else:
-                await message.answer("Файлов нет")
-    else:
-        if len(files) > 0:
-            await message.answer('Список файлов')
+    try:
+        if is_admin(message) and len(files) > 0:
             for value in cur.execute("SELECT * FROM lections").fetchall():
                 if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
                     await message.answer(
-                        f"NAME=<code>{value[1]}</code>\n{value[2]}", parse_mode="html")
+                        f"NAME=<code>{value[1]}</code>\nCAPTION={value[2]}", parse_mode="html")
+                else:
+                    await message.answer("Файлов нет")
         else:
-            await message.answer('Файлов нет')
-
+            if len(files) > 0:
+                await message.answer('Список файлов')
+                for value in cur.execute("SELECT * FROM lections").fetchall():
+                    if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
+                        await message.answer(
+                            f"NAME=<code>{value[1]}</code>\n{value[2]}", parse_mode="html")
+            else:
+                await message.answer('Файлов нет')
+    except Exception as e:
+        await message.answer("e")
 
 
 async def get_caption(file_name):

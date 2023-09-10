@@ -14,7 +14,7 @@ async def start_cmd(message: types.Message):
     if sqlite_db.cur.fetchone() is None:  # если такой записи нет, то:
         await sqlite_db.sql_add_user_cmd(message)
         await bot.send_message(message.chat.id, "Привет! \nСписок доступных команд /help.")
-        if is_admin(message):
+        if not is_admin(message):
             for ids in config.ADMINS:
                 await bot.send_message(ids,
                                        f"Новый пользователь:\n"
