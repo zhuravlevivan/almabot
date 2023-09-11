@@ -57,5 +57,4 @@ async def files_cmd(message):
 
 
 async def my_id(message: types.Message):
-    await message.answer(f'ID \= `{message.chat.id}`', parse_mode="MarkdownV2")
-
+    await message.answer(f'ID `{message.chat.id}`', parse_mode="MarkdownV2")

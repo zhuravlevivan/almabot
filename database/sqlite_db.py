@@ -1,13 +1,17 @@
 import sqlite3 as sq
-import os
+import gspread
 
 from aiogram import types
 
-from config import bot
-from handlers.admin import is_admin
+from config import bot, google_json, tab_name
+from handlers.admin import is_admin, datetime
 
 base = None
 cur = None
+
+gc = gspread.service_account(filename=google_json)
+sh = gc.open(tab_name)
+worksheet = sh.sheet1
 
 
 def sql_start():
@@ -83,26 +87,26 @@ async def show_files(message: types.Message):
     global base, cur
     base = sq.connect('users.db', check_same_thread=False)
     cur = base.cursor()
-    files = os.listdir('files/')
+    # files = os.listdir('files/')
     try:
-        if is_admin(message) and len(files) > 0:
-            for value in cur.execute("SELECT * FROM lections").fetchall():
-                if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
+        if is_admin(message):
+            if len(cur.execute("SELECT * FROM lections").fetchall()) != 0:
+                for value in cur.execute("SELECT * FROM lections").fetchall():
                     await message.answer(
                         f"NAME=<code>{value[1]}</code>\nCAPTION={value[2]}", parse_mode="html")
-                else:
-                    await message.answer("Файлов нет")
+            else:
+                await message.answer("Файлов нет")
         else:
-            if len(files) > 0:
+            if len(cur.execute("SELECT * FROM lections").fetchall()) != 0:
                 await message.answer('Список файлов')
                 for value in cur.execute("SELECT * FROM lections").fetchall():
-                    if len(cur.execute("SELECT * FROM lections").fetchall()) > 0:
-                        await message.answer(
+                    await message.answer(
                             f"NAME=<code>{value[1]}</code>\n{value[2]}", parse_mode="html")
             else:
                 await message.answer('Файлов нет')
-    except Exception as e:
-        await message.answer("e")
+
+    except OSError as e:
+        await message.answer(str(e))
 
 
 async def get_caption(file_name):
@@ -110,3 +114,28 @@ async def get_caption(file_name):
     base = sq.connect('users.db', check_same_thread=False)
     cur = base.cursor()
     return cur.execute(f"SELECT caption FROM lections WHERE path = '{file_name}'").fetchone()
+
+
+async def add_access_to_sheets(user_id, lecture_name):
+    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data = [user_id, lecture_name, date]
+    worksheet.append_row(data)
+
+
+async def del_access_from_sheet(user_id, lecture_name):
+    cell_list = worksheet.findall(str(user_id))
+    cell2 = reversed(cell_list)  # Разворачиваем, чтобы удалять с конца
+    data = [str(user_id), lecture_name]
+    for r in cell2:
+        if data[0] == worksheet.row_values(r.row)[0] and data[1] == worksheet.row_values(r.row)[1]:
+            worksheet.delete_row(r.row)
+            # print(worksheet.row_values(r.row))
+            # print('DATA INFOR')
+            # print(worksheet.row_values(r.row)[1])
+
+
+async def del_user_from_sheet(user_id):
+    cell_list = worksheet.findall(str(user_id))
+    cell2 = reversed(cell_list)
+    for r in cell2:
+        worksheet.delete_row(r.row)

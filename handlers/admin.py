@@ -1,7 +1,9 @@
+import asyncio
 import os
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import ChatActions
 from config import bot
 import config
 from database import sqlite_db
@@ -122,7 +124,7 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
 # ------------- RENAME CMD END ------------- #
 
 
-# ------------- REMOVE CMD START ------------- #
+# ------------- FILE REMOVE START ------------- #
 async def remove_cmd(message: types.Message):
     if is_admin(message):
         await message.answer("Введите имя файла с расширением:", reply_markup=cancel_menu_kb)
@@ -144,7 +146,7 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# ------------- REMOVE CMD END ------------- #
+# ------------- FILE REMOVE END ------------- #
 
 
 # ------------- REMOVE USER START ------------- #
@@ -163,6 +165,7 @@ async def process_remove_user_step(message: types.Message, state: FSMContext):
             sqlite_db.cur.execute(f'DELETE FROM users WHERE chatid = "{message.text}"')
             sqlite_db.cur.execute(f'DELETE FROM access WHERE auserid = "{message.text}"')
             sqlite_db.base.commit()
+            await sqlite_db.del_user_from_sheet(user_id)
             await message.answer("Пользователь удален", reply_markup=admin_menu_kb)
         except Exception as e:
             await message.answer(f"Ошибка при удалении: {e}", reply_markup=admin_menu_kb)
@@ -179,6 +182,7 @@ async def process_remove_user_step(message: types.Message, state: FSMContext):
 async def users_cmd(message: types.Message):
     if is_admin(message):
         await sqlite_db.show_users(message)
+        # await sqlite_db.del_access_from_sheet(message.chat.id)
 
 
 # ------------- USERS CMD END ------------- #
@@ -227,12 +231,12 @@ async def process_get_file(message: types.Message, state: FSMContext):
 
 # ------------- GETFILE END ------------- #
 
-action = ""
+actions = ""
 
 
 async def give_or_del_access(message: types.Message):
-    global action
-    action = message.text
+    global actions
+    actions = message.text
     if is_admin(message):
         await message.answer("Введите ID пользователя:", reply_markup=cancel_menu_kb)
         await AccessToFilesStates.waiting_for_user_id.set()
@@ -261,20 +265,21 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
             f"AND alectionid = '{lecture}'"
         )
 
-        if action == "give_accept":
+        if actions == "give_accept":
             if sqlite_db.cur.fetchone() is None:
                 sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
                                       (f'{user_id}',
                                        f'{lecture}')
                                       )
                 sqlite_db.base.commit()
+                await sqlite_db.add_access_to_sheets(f'{user_id}', f'{lecture}')
                 await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
 
                                                         f"к файлу {lecture}", reply_markup=admin_menu_kb)
             else:
                 await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
 
-        if action == "del_accept":
+        if actions == "del_accept":
             if sqlite_db.cur.fetchone() is None:
                 await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
             else:
@@ -282,6 +287,9 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
                                       f"AND alectionid = '{lecture}'",
                                       )
                 sqlite_db.base.commit()
+                await sqlite_db.del_access_from_sheet(user_id, lecture)
+                await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
+                await asyncio.sleep(1)
                 await message.answer(f"Успешно! отозвали доступ у - {user_id} "
                                      f"к файлу {lecture}", reply_markup=admin_menu_kb)
 
@@ -331,9 +339,13 @@ async def process_user_access_id(message: types.Message, state: FSMContext):
     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
         await state.update_data(user_id=user_id)
         user_access = await sqlite_db.show_user_access(user_id)
-        await message.reply("Доступ выдан к файлам:")
-        for line in user_access:
-            await message.answer(line, reply_markup=admin_menu_kb)
+        print(len(user_access))
+        if len(user_access) > 0:
+            await message.reply("Доступ выдан к файлам:")
+            for line in user_access:
+                await message.answer(line, reply_markup=admin_menu_kb)
+        else:
+            await message.answer("Доступы пока не выданы", reply_markup=admin_menu_kb)
     else:
         await message.reply("ID не найден", reply_markup=admin_menu_kb)
         await state.finish()
@@ -414,7 +426,7 @@ async def handle_audio_or_document(message: types.Message):
                 sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [message.audio.file_name])
                 sqlite_db.base.commit()
 
-                await message.answer(f'Успешно сохранено\n Имя файла: `{message.audio.file_name}`!',
+                await message.answer(f'Успешно сохранено\n Имя файла: `{message.audio.file_name}`',
                                      parse_mode="MarkdownV2")
             elif message.document:
                 file_info = await bot.get_file(message.document.file_id)
