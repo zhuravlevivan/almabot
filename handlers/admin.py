@@ -1,9 +1,9 @@
-import asyncio
+# import asyncio
 import os
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ChatActions
+# from aiogram.types import ChatActions
 from config import bot
 import config
 from database import sqlite_db
@@ -165,7 +165,7 @@ async def process_remove_user_step(message: types.Message, state: FSMContext):
             sqlite_db.cur.execute(f'DELETE FROM users WHERE chatid = "{message.text}"')
             sqlite_db.cur.execute(f'DELETE FROM access WHERE auserid = "{message.text}"')
             sqlite_db.base.commit()
-            await sqlite_db.del_user_from_sheet(user_id)
+            # await sqlite_db.del_user_from_sheet(user_id)
             await message.answer("Пользователь удален", reply_markup=admin_menu_kb)
         except Exception as e:
             await message.answer(f"Ошибка при удалении: {e}", reply_markup=admin_menu_kb)
@@ -272,7 +272,7 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
                                        f'{lecture}')
                                       )
                 sqlite_db.base.commit()
-                await sqlite_db.add_access_to_sheets(f'{user_id}', f'{lecture}')
+                # await sqlite_db.add_access_to_sheets(f'{user_id}', f'{lecture}')
                 await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
 
                                                         f"к файлу {lecture}", reply_markup=admin_menu_kb)
@@ -287,9 +287,9 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
                                       f"AND alectionid = '{lecture}'",
                                       )
                 sqlite_db.base.commit()
-                await sqlite_db.del_access_from_sheet(user_id, lecture)
-                await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
-                await asyncio.sleep(1)
+                # await sqlite_db.del_access_from_sheet(user_id, lecture)
+                # await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
+                # await asyncio.sleep(1)
                 await message.answer(f"Успешно! отозвали доступ у - {user_id} "
                                      f"к файлу {lecture}", reply_markup=admin_menu_kb)
 

@@ -1,17 +1,17 @@
 import sqlite3 as sq
-import gspread
+# import gspread
 
 from aiogram import types
 
-from config import bot, google_json, tab_name
-from handlers.admin import is_admin, datetime
+from config import bot  # google_json, tab_name
+from handlers.admin import is_admin  # datetime
 
 base = None
 cur = None
 
-gc = gspread.service_account(filename=google_json)
-sh = gc.open(tab_name)
-worksheet = sh.sheet1
+# gc = gspread.service_account(filename=google_json)
+# sh = gc.open(tab_name)
+# worksheet = sh.sheet1
 
 
 def sql_start():
@@ -116,26 +116,26 @@ async def get_caption(file_name):
     return cur.execute(f"SELECT caption FROM lections WHERE path = '{file_name}'").fetchone()
 
 
-async def add_access_to_sheets(user_id, lecture_name):
-    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    data = [user_id, lecture_name, date]
-    worksheet.append_row(data)
-
-
-async def del_access_from_sheet(user_id, lecture_name):
-    cell_list = worksheet.findall(str(user_id))
-    cell2 = reversed(cell_list)  # Разворачиваем, чтобы удалять с конца
-    data = [str(user_id), lecture_name]
-    for r in cell2:
-        if data[0] == worksheet.row_values(r.row)[0] and data[1] == worksheet.row_values(r.row)[1]:
-            worksheet.delete_row(r.row)
-            # print(worksheet.row_values(r.row))
-            # print('DATA INFOR')
-            # print(worksheet.row_values(r.row)[1])
-
-
-async def del_user_from_sheet(user_id):
-    cell_list = worksheet.findall(str(user_id))
-    cell2 = reversed(cell_list)
-    for r in cell2:
-        worksheet.delete_row(r.row)
+# async def add_access_to_sheets(user_id, lecture_name):
+#     date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+#     data = [user_id, lecture_name, date]
+#     worksheet.append_row(data)
+#
+#
+# async def del_access_from_sheet(user_id, lecture_name):
+#     cell_list = worksheet.findall(str(user_id))
+#     cell2 = reversed(cell_list)  # Разворачиваем, чтобы удалять с конца
+#     data = [str(user_id), lecture_name]
+#     for r in cell2:
+#         if data[0] == worksheet.row_values(r.row)[0] and data[1] == worksheet.row_values(r.row)[1]:
+#             worksheet.delete_row(r.row)
+#             # print(worksheet.row_values(r.row))
+#             # print('DATA INFOR')
+#             # print(worksheet.row_values(r.row)[1])
+#
+#
+# async def del_user_from_sheet(user_id):
+#     cell_list = worksheet.findall(str(user_id))
+#     cell2 = reversed(cell_list)
+#     for r in cell2:
+#         worksheet.delete_row(r.row)
