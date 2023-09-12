@@ -182,7 +182,6 @@ async def process_remove_user_step(message: types.Message, state: FSMContext):
 async def users_cmd(message: types.Message):
     if is_admin(message):
         await sqlite_db.show_users(message)
-        # await sqlite_db.del_access_from_sheet(message.chat.id)
 
 
 # ------------- USERS CMD END ------------- #
