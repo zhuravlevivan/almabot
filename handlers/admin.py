@@ -113,6 +113,8 @@ async def process_new_name_step(message: types.Message, state: FSMContext):
         sqlite_db.cur.execute(f"UPDATE access SET alectionid = '{new_name}' WHERE alectionid = '{old_name}'")
         sqlite_db.base.commit()
         os.rename(os.path.join('files/', f'{old_name}'), os.path.join('files/', f'{new_name}'))
+        await sqlite_db.rename_file_in_sheet(old_name, new_name)
+        await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
         await message.answer(f"Файл успешно переименован в {new_name}", reply_markup=admin_menu_kb)
 
     except Exception as e:
@@ -138,6 +140,8 @@ async def process_file_remove_step(message: types.Message, state: FSMContext):
         sqlite_db.cur.execute(f'DELETE FROM lections WHERE path = "{message.text}"')
         sqlite_db.cur.execute(f'DELETE FROM access WHERE alectionid = "{message.text}"')
         sqlite_db.base.commit()
+        await sqlite_db.del_item_from_sheet(message.text)
+        await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
         await message.answer("Файл удален", reply_markup=admin_menu_kb)
 
     except OSError as e:
@@ -165,7 +169,8 @@ async def process_remove_user_step(message: types.Message, state: FSMContext):
             sqlite_db.cur.execute(f'DELETE FROM users WHERE chatid = "{message.text}"')
             sqlite_db.cur.execute(f'DELETE FROM access WHERE auserid = "{message.text}"')
             sqlite_db.base.commit()
-            await sqlite_db.del_user_from_sheet(user_id)
+            await sqlite_db.del_item_from_sheet(user_id)
+            await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
             await message.answer("Пользователь удален", reply_markup=admin_menu_kb)
         except Exception as e:
             await message.answer(f"Ошибка при удалении: {e}", reply_markup=admin_menu_kb)
@@ -413,7 +418,7 @@ async def voice_processing(message: types.Message):
 
 # ------------- PROCESSING SAVE AUDIO START ------------- #
 async def handle_audio_or_document(message: types.Message):
-    if is_admin(message):
+    # if is_admin(message):
         try:
             if message.audio:
                 file_info = await bot.get_file(message.audio.file_id)
@@ -442,7 +447,7 @@ async def handle_audio_or_document(message: types.Message):
 
         except Exception as e:
             await message.answer(str(e))
-    else:
-        await message.answer('Вам нельзя!')
+    # else:
+    #     await message.answer('Вам нельзя!')
 
 # ------------- PROCESSING SAVE AUDIO END ------------- #

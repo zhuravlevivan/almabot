@@ -129,13 +129,18 @@ async def del_access_from_sheet(user_id, lecture_name):
     for r in cell2:
         if data[0] == worksheet.row_values(r.row)[0] and data[1] == worksheet.row_values(r.row)[1]:
             worksheet.delete_row(r.row)
-            # print(worksheet.row_values(r.row))
-            # print('DATA INFOR')
-            # print(worksheet.row_values(r.row)[1])
 
 
-async def del_user_from_sheet(user_id):
-    cell_list = worksheet.findall(str(user_id))
+async def del_item_from_sheet(item):
+    cell_list = worksheet.findall(str(item))
     cell2 = reversed(cell_list)
     for r in cell2:
-        worksheet.delete_row(r.row)
+        worksheet.delete_rows(r.row)
+
+
+async def rename_file_in_sheet(old_name, new_name):
+    cell_list = worksheet.findall(old_name)
+    cell2 = reversed(cell_list)
+    for r in cell2:
+        worksheet.update_cell(r.row, r.col, new_name)
+
