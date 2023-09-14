@@ -12,6 +12,7 @@ cur = None
 gc = gspread.service_account(filename=google_json)
 sh = gc.open(tab_name)
 worksheet = sh.sheet1
+worksheet2 = sh.get_worksheet(1)
 
 
 def sql_start():
@@ -49,6 +50,10 @@ async def sql_add_user_cmd(message):
                                                        message.from_user.last_name
                                                        ))
     base.commit()
+    await add_users_to_sheets(message.chat.id,
+                              message.from_user.username,
+                              message.from_user.first_name,
+                              message.from_user.last_name)
 
 
 async def show_users(message):
@@ -122,6 +127,12 @@ async def add_access_to_sheets(user_id, lecture_name):
     worksheet.append_row(data)
 
 
+async def add_users_to_sheets(user_id, u_name, f_name, l_name):
+    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    data = [user_id, u_name, f_name, l_name, date]
+    worksheet2.append_row(data)
+
+
 async def del_access_from_sheet(user_id, lecture_name):
     cell_list = worksheet.findall(str(user_id))
     cell2 = reversed(cell_list)  # Разворачиваем, чтобы удалять с конца
@@ -133,9 +144,13 @@ async def del_access_from_sheet(user_id, lecture_name):
 
 async def del_item_from_sheet(item):
     cell_list = worksheet.findall(str(item))
-    cell2 = reversed(cell_list)
-    for r in cell2:
+    cell_list2 = worksheet2.findall(str(item))
+    cell_rev = reversed(cell_list)
+    cell_rev2 = reversed(cell_list2)
+    for r in cell_rev:
         worksheet.delete_rows(r.row)
+    for r in cell_rev2:
+        worksheet2.delete_rows(r.row)
 
 
 async def rename_file_in_sheet(old_name, new_name):
