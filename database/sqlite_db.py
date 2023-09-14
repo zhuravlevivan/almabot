@@ -16,7 +16,7 @@ worksheet = sh.sheet1
 
 def sql_start():
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     if base:
         print('Database Connect OK!')
@@ -41,7 +41,7 @@ def sql_start():
 
 async def sql_add_user_cmd(message):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     cur.execute(f"INSERT INTO users VALUES(?,?,?,?)", (message.chat.id,
                                                        message.from_user.username,
@@ -53,7 +53,7 @@ async def sql_add_user_cmd(message):
 
 async def show_users(message):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     if is_admin(message):
         for value in cur.execute("SELECT * FROM users").fetchall():
@@ -63,7 +63,7 @@ async def show_users(message):
 
 async def show_user_access(message):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     user_access_list = []
     for value in cur.execute(f"SELECT * FROM access WHERE auserid = '{message}' ORDER BY auserid").fetchall():
@@ -74,7 +74,7 @@ async def show_user_access(message):
 
 async def users_list(message):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     users = []
     # if is_admin(message):
@@ -85,7 +85,7 @@ async def users_list(message):
 
 async def show_files(message: types.Message):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     # files = os.listdir('files/')
     try:
@@ -111,7 +111,7 @@ async def show_files(message: types.Message):
 
 async def get_caption(file_name):
     global base, cur
-    base = sq.connect('users.db', check_same_thread=False)
+    base = sq.connect('database/users.db', check_same_thread=False)
     cur = base.cursor()
     return cur.execute(f"SELECT caption FROM lections WHERE path = '{file_name}'").fetchone()
 
@@ -143,4 +143,3 @@ async def rename_file_in_sheet(old_name, new_name):
     cell2 = reversed(cell_list)
     for r in cell2:
         worksheet.update_cell(r.row, r.col, new_name)
-

@@ -52,9 +52,11 @@ akb3 = KeyboardButton('show_acc')
 akb4 = KeyboardButton('del_user')
 
 akb5 = KeyboardButton('mailing')
-akb6 = KeyboardButton('go_back')
+akb6 = KeyboardButton('backup')
+akb7 = KeyboardButton('go_back')
 admin_access_kb.row(akb1, akb2, akb3)
 admin_access_kb.row(akb4, akb5, akb6)
+admin_access_kb.row(akb7)
 # ------------ ACCESS REPLY KB END ------------ #
 
 

@@ -1,7 +1,7 @@
 from aiogram.dispatcher.filters import Text
 from handlers.user import start_cmd, help_cmd, files_cmd, my_id
 from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
-    users_cmd, \
+    users_cmd, do_backup, \
     give_or_del_access, process_god_user_id, process_god_file_name, \
     cancel_handler, process_new_name_step, process_old_name_step,\
     process_file_remove_step,  process_get_file,\
@@ -11,7 +11,6 @@ from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
     GetFile, types, RemoveUser, remove_user_cmd, process_remove_user_step,\
     show_user_access, process_user_access_id,\
     FileCaption, add_caption_to_file, process_file_caption_step, process_file_name_caption_step
-
 from config import Dispatcher
 
 
@@ -61,3 +60,5 @@ def register_handlers_admin(dp: Dispatcher):
 
     dp.register_message_handler(show_user_access, Text(equals='show_acc', ignore_case=True))
     dp.register_message_handler(process_user_access_id, state=AccessToFilesStates.waiting_for_user_access_id)
+
+    dp.register_message_handler(do_backup, Text(equals='backup', ignore_case=True))

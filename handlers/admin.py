@@ -6,7 +6,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import ChatActions
 from config import bot
 import config
-from database import sqlite_db
+from database import sqlite_db, backup_db_script
 from keyboards.admin_kb import admin_menu_kb, admin_access_kb, cancel_menu_kb
 from keyboards.user_kb import user_kb
 from datetime import datetime
@@ -57,6 +57,12 @@ def is_admin(message):
 async def go_back(message: types.Message):
     if message.text == 'go_back' and is_admin(message):
         await message.answer('ok', reply_markup=admin_menu_kb)
+
+
+async def do_backup(message: types.Message):
+    if message.text == 'backup' and is_admin(message):
+        await backup_db_script.backup_db()
+        await message.answer('Backup successful!')
 
 
 # ------------- ADMIN CMD START ------------- #

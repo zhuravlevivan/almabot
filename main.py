@@ -1,7 +1,7 @@
 from aiogram.utils import executor
 from config import dp, bot
 from handlers import register_mh
-from database import sqlite_db
+from database import sqlite_db, backup_db_script
 from keyboards.admin_kb import set_main_menu
 
 
