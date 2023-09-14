@@ -11,7 +11,7 @@ cur = None
 
 gc = gspread.service_account(filename=google_json)
 sh = gc.open(tab_name)
-worksheet = sh.sheet1
+worksheet = sh.get_worksheet(0)
 worksheet2 = sh.get_worksheet(1)
 
 
