@@ -4,7 +4,7 @@ import shutil
 import sqlite3 as sq
 
 from datetime import datetime
-from config import google_json, folder_id
+from config import google_json, folder_id, scope_gdrive
 
 from google.oauth2 import service_account
 from googleapiclient.http import MediaFileUpload
@@ -12,7 +12,7 @@ from googleapiclient.discovery import build
 
 base = None
 
-SCOPES = ['https://www.googleapis.com/auth/drive']
+SCOPES = [scope_gdrive]
 SERVICE_ACCOUNT_FILE = (str(google_json))
 credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
