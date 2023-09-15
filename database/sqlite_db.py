@@ -129,8 +129,13 @@ async def add_access_to_sheets(user_id, lecture_name):
 
 async def add_users_to_sheets(user_id, u_name, f_name, l_name):
     date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    data = [user_id, u_name, f_name, l_name, date]
-    worksheet2.append_row(data)
+    raw_data = [user_id, f'@{u_name}', f_name, l_name, date]
+    clean_data = []
+    for item in raw_data:
+        if item is None:
+            item = '___'
+        clean_data.append(item)
+    worksheet2.append_row(clean_data)
 
 
 async def del_access_from_sheet(user_id, lecture_name):
