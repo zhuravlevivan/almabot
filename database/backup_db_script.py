@@ -35,8 +35,8 @@ async def backup_db():
     await asyncio.sleep(1)
 
     folder = folder_id
-    name = 'backup-' + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.db'
-    file_path = 'database/backup.db'
+    name = 'backup-' + datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + '.gz'
+    file_path = 'database/backup.db.gz'
 
     file_metadata = {
                     'name': name,

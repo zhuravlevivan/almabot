@@ -61,8 +61,9 @@ async def go_back(message: types.Message):
 
 async def do_backup(message: types.Message):
     if message.text == 'backup' and is_admin(message):
-        await backup_db_script.backup_db()
         await message.answer('Backup successful!')
+        await backup_db_script.backup_db()
+
 
 
 # ------------- ADMIN CMD START ------------- #
@@ -424,7 +425,7 @@ async def voice_processing(message: types.Message):
 
 # ------------- PROCESSING SAVE AUDIO START ------------- #
 async def handle_audio_or_document(message: types.Message):
-    # if is_admin(message):
+    if is_admin(message):
         try:
             if message.audio:
                 file_info = await bot.get_file(message.audio.file_id)
@@ -453,7 +454,7 @@ async def handle_audio_or_document(message: types.Message):
 
         except Exception as e:
             await message.answer(str(e))
-    # else:
-    #     await message.answer('Вам нельзя!')
+    else:
+        await message.answer('Вам нельзя!')
 
 # ------------- PROCESSING SAVE AUDIO END ------------- #
