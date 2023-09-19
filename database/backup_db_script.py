@@ -47,13 +47,13 @@ async def backup_db():
     service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
 
-async def scheduled_function():
-    """
-    Функция-планировщик бэкапа. Ежедневно в 7:00
-    """
-
-    if datetime.now().time().hour == 7:
-        await backup_db()
-
-    await asyncio.sleep(86400)
-    await scheduled_function()
+# async def scheduled_function():
+#     """
+#     Функция-планировщик бэкапа. Ежедневно в 7:00
+#     """
+#
+#     if datetime.now().time().hour == 7:
+#         await backup_db()
+#
+#     await asyncio.sleep(86400)
+#     await scheduled_function()

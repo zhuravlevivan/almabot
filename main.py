@@ -12,8 +12,8 @@ async def on_startup(_):
     await set_main_menu(bot)
     sqlite_db.sql_start()
 
-    loop = asyncio.get_event_loop()
-    loop.create_task(backup_db_script.scheduled_function())
+    # loop = asyncio.get_event_loop()
+    # loop.create_task(backup_db_script.scheduled_function())
 
 
 register_mh.register_handlers_user(dp)
