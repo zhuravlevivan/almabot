@@ -65,11 +65,19 @@ async def do_backup(message: types.Message):
         await backup_db_script.backup_db()
 
 
+async def send_message_and_delete(bot, chat_id, message):
+    """
+    Функция удаления сообщения
+    """
+    sent_message = await bot.send_message(chat_id, message)
+    await asyncio.sleep(10)
+    await sent_message.delete()
+
 
 # ------------- ADMIN CMD START ------------- #
 async def admin_cmd(message: types.Message):
     if is_admin(message):
-        await bot.send_message(message.chat.id, "[--------A-C-C-E-S-S---Z-O-N-E--------]", reply_markup=admin_access_kb)
+        await bot.send_message(message.chat.id, "[---A-C-C-E-S-S---Z-O-N-E---]", reply_markup=admin_access_kb)
     else:
         await bot.send_message(message.chat.id, "Вы не админ")
 
@@ -309,6 +317,8 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
 
     # Сброс состояния FSM
     await state.finish()
+
+
 # ------------- GIVE_DELETE ACCESS END ------------- #
 
 
@@ -400,6 +410,7 @@ async def process_file_caption_step(message: types.Message, state: FSMContext):
 
     # Сброс состояния FSM
     await state.finish()
+
 
 # ------------- ADD CAPTION END ------------- #
 
