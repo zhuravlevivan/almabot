@@ -49,10 +49,10 @@ async def backup_db():
 
 async def scheduled_function():
     """
-    Функция-планировщик бэкапа. Ежедневно в 7:00
+    Функция-планировщик бэкапа. Ежедневно в 0:00
     """
     current_time = datetime.now().time()
-    if datetime.now().time().hour != 14:
+    if datetime.now().time().hour != 0:
         seconds_to_start = 86400 - (current_time.hour * 3600 + current_time.minute * 60 + current_time.second)
         await asyncio.sleep(seconds_to_start)
     
