@@ -31,7 +31,7 @@ async def start_cmd(message: types.Message):
 async def help_cmd(message: types.Message):
     if not is_admin(message):
         await bot.send_message(message.chat.id,
-                               "Список доступных лекций: __files__\n"
+                               "Список лекций: __files__\n"
                                "Чтобы получить файл: __getfile__\n"
                                "Узнать свой ID: __my id__\n",
                                parse_mode="MarkdownV2",
