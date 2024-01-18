@@ -1,5 +1,5 @@
 import asyncio
-import os
+import os, re
 from aiogram import types
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -236,7 +236,8 @@ async def process_get_file(message: types.Message, state: FSMContext):
             try:
                 await bot.send_audio(user_id, doc,
                                      protect_content=True,
-                                     caption=file_caption[0])
+                                     caption=file_caption[0],
+                                     parse_mode="MarkdownV2")
 
             except Exception as e:
                 await bot.send_message(user_id, str(e))
@@ -278,42 +279,42 @@ async def process_god_file_name(message: types.Message, state: FSMContext):
     data = await state.get_data()
     user_id = data.get("user_id")
     # Проверка наличия файла в базе данных по имени
-    if lecture in os.listdir('files/'):
-        sqlite_db.cur.execute(
-            f"SELECT * FROM access WHERE auserid = '{user_id}'"
-            f"AND alectionid = '{lecture}'"
-        )
+    for lec in list(re.split(r'[,\s]+', lecture)):
+        if lec in os.listdir('files/'):
+            sqlite_db.cur.execute(
+                f"SELECT * FROM access WHERE auserid = '{user_id}'"
+                f"AND alectionid = '{lec}'"
+            )
 
-        if actions == "give_accept":
-            if sqlite_db.cur.fetchone() is None:
-                sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
-                                      (f'{user_id}',
-                                       f'{lecture}')
-                                      )
-                sqlite_db.base.commit()
-                await sqlite_db.add_access_to_sheets(f'{user_id}', f'{lecture}')
-                await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
+            if actions == "give_accept":
+                if sqlite_db.cur.fetchone() is None:
+                    sqlite_db.cur.execute(f"INSERT INTO access VALUES (?,?)",
+                                          (f'{user_id}',
+                                           f'{lec}')
+                                          )
+                    sqlite_db.base.commit()
+                    await sqlite_db.add_access_to_sheets(f'{user_id}', f'{lec}')
+                    await bot.send_message(message.chat.id, f"Успешно! Выдали доступ - {user_id} "
+    
+                                                            f"к файлу {lec}", reply_markup=admin_menu_kb)
+                else:
+                    await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
 
-                                                        f"к файлу {lecture}", reply_markup=admin_menu_kb)
-            else:
-                await message.reply("Доступ уже выдан", reply_markup=admin_menu_kb)
-
-        if actions == "del_accept":
-            if sqlite_db.cur.fetchone() is None:
-                await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
-            else:
-                sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
-                                      f"AND alectionid = '{lecture}'",
-                                      )
-                sqlite_db.base.commit()
-                await sqlite_db.del_access_from_sheet(user_id, lecture)
-                await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
-                await asyncio.sleep(1)
-                await message.answer(f"Успешно! отозвали доступ у - {user_id} "
-                                     f"к файлу {lecture}", reply_markup=admin_menu_kb)
-
-    else:
-        await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
+            if actions == "del_accept":
+                if sqlite_db.cur.fetchone() is None:
+                    await message.answer("Доступ уже отозван", reply_markup=admin_menu_kb)
+                else:
+                    sqlite_db.cur.execute(f"DELETE FROM access WHERE auserid = '{user_id}'"
+                                          f"AND alectionid = '{lec}'",
+                                          )
+                    sqlite_db.base.commit()
+                    await sqlite_db.del_access_from_sheet(user_id, lec)
+                    await bot.send_chat_action(message.chat.id, ChatActions.TYPING)
+                    await asyncio.sleep(1)
+                    await message.answer(f"Успешно! отозвали доступ у - {user_id} "
+                                         f"к файлу {lec}", reply_markup=admin_menu_kb)
+        else:
+            await message.reply("Файл с таким именем не найден", reply_markup=admin_menu_kb)
 
     # Сброс состояния FSM
     await state.finish()
@@ -360,7 +361,6 @@ async def process_user_access_id(message: types.Message, state: FSMContext):
     if user_id.isdigit() and user_id in await sqlite_db.users_list(message):
         await state.update_data(user_id=user_id)
         user_access = await sqlite_db.show_user_access(user_id)
-        print(len(user_access))
         if len(user_access) > 0:
             await message.reply("Доступ выдан к файлам:")
             for line in user_access:
