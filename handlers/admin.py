@@ -236,8 +236,7 @@ async def process_get_file(message: types.Message, state: FSMContext):
             try:
                 await bot.send_audio(user_id, doc,
                                      protect_content=True,
-                                     caption=file_caption[0],
-                                     parse_mode="MarkdownV2")
+                                     caption=file_caption[0])
 
             except Exception as e:
                 await bot.send_message(user_id, str(e))
