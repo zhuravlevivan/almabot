@@ -220,11 +220,15 @@ async def get_file(message: types.Message):
     except Exception as e:
         await message.answer(str(e))
 
+audio_ext = ['.ogg', '.acc', '.mp3', '.wav', '.flac']
+image_ext = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
+
 
 async def process_get_file(message: types.Message, state: FSMContext):
     # noinspection PyBroadException
     user_id = message.chat.id
     file_name = message.text
+    basename, extension = os.path.splitext(file_name)
     file_caption = await sqlite_db.get_caption(file_name)
     if file_name in os.listdir('files/'):
         sqlite_db.cur.execute(
@@ -232,16 +236,26 @@ async def process_get_file(message: types.Message, state: FSMContext):
         if len(sqlite_db.cur.fetchall()) == 0:
             await message.answer('Доступ еще не предоставлен')
         else:
-            doc = open(f'files/{file_name}', 'rb')
-            try:
-                await bot.send_audio(user_id, doc,
-                                     protect_content=True,
-                                     caption=file_caption[0])
+            # doc = open(f'files/{file_name}', 'rb')
+            with open(f'files/{file_name}', 'rb') as doc:
+                if extension.lower() in audio_ext:
+                    try:
+                        await bot.send_audio(user_id, doc,
+                                             protect_content=True,
+                                             caption=file_caption[0])
 
-            except Exception as e:
-                await bot.send_message(user_id, str(e))
+                    except Exception as e:
+                        await bot.send_message(user_id, str(e))
+                elif extension.lower() in image_ext:
+                    try:
+                        await bot.send_photo(user_id, doc,
+                                             protect_content=True,
+                                             caption=file_caption[0])
 
-            doc.close()
+                    except Exception as e:
+                        await bot.send_message(user_id, str(e))
+
+            # doc.close()
     else:
         await message.answer('Файл не найден')
 
