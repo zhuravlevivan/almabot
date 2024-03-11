@@ -236,7 +236,6 @@ async def process_get_file(message: types.Message, state: FSMContext):
         if len(sqlite_db.cur.fetchall()) == 0:
             await message.answer('Доступ еще не предоставлен')
         else:
-            # doc = open(f'files/{file_name}', 'rb')
             with open(f'files/{file_name}', 'rb') as doc:
                 if extension.lower() in audio_ext:
                     try:
@@ -255,7 +254,6 @@ async def process_get_file(message: types.Message, state: FSMContext):
                     except Exception as e:
                         await bot.send_message(user_id, str(e))
 
-            # doc.close()
     else:
         await message.answer('Файл не найден')
 
@@ -447,7 +445,7 @@ async def voice_processing(message: types.Message):
 # ------------- PROCESSING VOICE END ------------- #
 
 
-# ------------- PROCESSING SAVE AUDIO START ------------- #
+# ------------- PROCESSING SAVE CONTENT START ------------- #
 async def handle_audio_or_document(message: types.Message):
     if is_admin(message):
         try:
@@ -463,6 +461,7 @@ async def handle_audio_or_document(message: types.Message):
 
                 await message.answer(f'Успешно сохранено\n Имя файла: `{message.audio.file_name}`',
                                      parse_mode="MarkdownV2")
+
             elif message.document:
                 file_info = await bot.get_file(message.document.file_id)
                 downloaded_file = await bot.download_file(file_info.file_path)
@@ -475,9 +474,28 @@ async def handle_audio_or_document(message: types.Message):
 
                 await message.answer(f'Успешно сохранено\n Имя файла: `{message.document.file_name}`',
                                      parse_mode="MarkdownV2")
+
         except Exception as e:
             await message.answer(str(e))
     else:
         await message.answer('Вам нельзя!')
 
-# ------------- PROCESSING SAVE AUDIO END ------------- #
+
+async def handle_photo(message: types.Message):
+    if is_admin(message):
+        try:
+            photo_name = f'{datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}.jpg'
+            photo = message.photo[-1]
+
+            await photo.download(destination_file=f'files/{photo_name}')
+
+            sqlite_db.cur.execute(f"INSERT INTO lections(path) VALUES (?)", [photo_name])
+            sqlite_db.base.commit()
+
+            await message.answer(f'Успешно сохранено\n Имя файла: `{photo_name}`',
+                                 parse_mode="MarkdownV2")
+
+        except Exception as e:
+            await message.answer(str(e))
+
+# ------------- PROCESSING SAVE CONTENT END ------------- #

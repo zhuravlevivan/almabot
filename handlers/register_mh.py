@@ -1,16 +1,16 @@
 from aiogram.dispatcher.filters import Text
 from handlers.user import start_cmd, help_cmd, files_cmd, my_id
-from handlers.admin import admin_cmd, remove_cmd, rename_cmd,\
+from handlers.admin import admin_cmd, remove_cmd, rename_cmd, \
     users_cmd, do_backup, \
     give_or_del_access, process_god_user_id, process_god_file_name, \
-    cancel_handler, process_new_name_step, process_old_name_step,\
-    process_file_remove_step,  process_get_file,\
-    process_text_mailing, voice_processing, handle_audio_or_document,\
-    go_back, mailing, get_file,\
-    RenameFile, RemoveFile, AccessToFilesStates, MailingState,\
-    GetFile, types, RemoveUser, remove_user_cmd, process_remove_user_step,\
-    show_user_access, process_user_access_id,\
-    FileCaption, add_caption_to_file, process_file_caption_step, process_file_name_caption_step
+    cancel_handler, process_new_name_step, process_old_name_step, \
+    process_file_remove_step, process_get_file, \
+    process_text_mailing, voice_processing, handle_audio_or_document, \
+    go_back, mailing, get_file, \
+    RenameFile, RemoveFile, AccessToFilesStates, MailingState, \
+    GetFile, types, RemoveUser, remove_user_cmd, process_remove_user_step, \
+    show_user_access, process_user_access_id, \
+    FileCaption, add_caption_to_file, process_file_caption_step, process_file_name_caption_step, handle_photo
 from config import Dispatcher
 
 
@@ -53,7 +53,7 @@ def register_handlers_admin(dp: Dispatcher):
     dp.register_message_handler(voice_processing, content_types=types.ContentType.VOICE)
     dp.register_message_handler(handle_audio_or_document, content_types=[types.ContentType.AUDIO,
                                                                          types.ContentType.DOCUMENT])
-
+    dp.register_message_handler(handle_photo, content_types=types.ContentType.PHOTO)
     dp.register_message_handler(add_caption_to_file, Text(equals='caption', ignore_case=True))
     dp.register_message_handler(process_file_name_caption_step, state=FileCaption.FileCaptionName)
     dp.register_message_handler(process_file_caption_step, state=FileCaption.FileCaption)
